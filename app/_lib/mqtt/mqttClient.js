@@ -3,53 +3,79 @@ import mqtt from "mqtt";
 let client = null;
 let isConnected = false;
 let isConnecting = false;
-
+let connectionPromise = null;
 const pendingSubscriptions = new Set();
 
 function connect() {
-  if (client || isConnecting) return;
+  // If already connected, resolve immediately
+  if (client && isConnected) {
+    return Promise.resolve();
+  }
+
+  // If currently connecting, return the existing promise
+  if (connectionPromise) {
+    return connectionPromise;
+  }
 
   isConnecting = true;
 
-  const brokerUrl = process.env.MQTT_BROKER_URL;
+  connectionPromise = new Promise((resolve, reject) => {
+    const brokerUrl = process.env.MQTT_BROKER_URL;
 
-  const options = {
-    clientId: "nextjs_server_mqtt", // fixed,
-    username: process.env.MQTT_USERNAME,
-    password: process.env.MQTT_PASSWORD,
-    clean: true,
-    reconnectPeriod: 1000,
-    connectTimeout: 30 * 1000,
-    rejectUnauthorized: false,
-  };
+    const options = {
+      clientId: "nextjs_server_mqtt_" + Math.random().toString(16).substr(2, 8),
+      username: process.env.MQTT_USERNAME,
+      password: process.env.MQTT_PASSWORD,
+      clean: true,
+      reconnectPeriod: 1000,
+      connectTimeout: 30 * 1000,
+      rejectUnauthorized: false,
+    };
 
-  console.log("Connecting to EMQX broker...");
-  client = mqtt.connect(brokerUrl, options);
+    console.log("Connecting to EMQX broker...");
+    client = mqtt.connect(brokerUrl, options);
 
-  client.on("connect", () => {
-    console.log("✓ MQTT connected");
-    isConnected = true;
-    isConnecting = false;
+    // Timeout for connection
+    const timeout = setTimeout(() => {
+      isConnecting = false;
+      connectionPromise = null;
+      reject(new Error("MQTT connection timeout"));
+    }, 30000);
 
-    // Subscribe pending topics
-    pendingSubscriptions.forEach((topic) => client.subscribe(topic));
-    pendingSubscriptions.clear();
+    client.on("connect", () => {
+      clearTimeout(timeout);
+      console.log("✓ MQTT connected");
+      isConnected = true;
+      isConnecting = false;
+
+      // Subscribe pending topics
+      pendingSubscriptions.forEach((topic) => client.subscribe(topic));
+      pendingSubscriptions.clear();
+
+      resolve();
+    });
+
+    client.on("error", (err) => {
+      clearTimeout(timeout);
+      console.error("MQTT error:", err);
+      isConnected = false;
+      isConnecting = false;
+      connectionPromise = null;
+      reject(err);
+    });
+
+    client.on("close", () => {
+      console.log("MQTT connection closed");
+      isConnected = false;
+      connectionPromise = null;
+    });
+
+    client.on("reconnect", () => {
+      console.log("MQTT reconnecting...");
+    });
   });
 
-  client.on("error", (err) => {
-    console.error("MQTT error:", err);
-    isConnected = false;
-    isConnecting = false;
-  });
-
-  client.on("close", () => {
-    console.log("MQTT connection closed");
-    isConnected = false;
-  });
-
-  client.on("reconnect", () => {
-    console.log("MQTT reconnecting...");
-  });
+  return connectionPromise;
 }
 
 function subscribe(topic) {
@@ -72,12 +98,16 @@ function publish(topic, message, options = { qos: 1 }) {
     throw new Error("MQTT not connected");
   }
 
-  client.publish(topic, message, options, (err) => {
-    if (err) {
-      console.error("Publish error:", err);
-    } else {
-      console.log(`✓ Published → ${topic}`);
-    }
+  return new Promise((resolve, reject) => {
+    client.publish(topic, message, options, (err) => {
+      if (err) {
+        console.error("Publish error:", err);
+        reject(err);
+      } else {
+        console.log(`✓ Published → ${topic}`);
+        resolve();
+      }
+    });
   });
 }
 
@@ -90,12 +120,11 @@ function disconnect() {
     client.end(true);
     client = null;
     isConnected = false;
+    connectionPromise = null;
   }
 }
 
 function getMQTTService() {
-  if (!client) connect();
-
   return {
     connect,
     publish,

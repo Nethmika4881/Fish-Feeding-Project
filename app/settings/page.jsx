@@ -1,5 +1,11 @@
+import Header from "./_components/Header";
+
 function page() {
-  return <div>Settings</div>;
+  return (
+    <div>
+      <Header />
+    </div>
+  );
 }
 
 export default page;

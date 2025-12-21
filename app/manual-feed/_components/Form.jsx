@@ -48,6 +48,7 @@ function Form({ children }) {
         </label>
 
         <input
+          required
           name="amount"
           className="bg-primary-200 text-primary-800 w-full rounded-sm px-5 py-1 shadow-sm focus:outline-2 focus:outline-blue-500"
         />
@@ -65,10 +66,10 @@ const Button = function () {
 
   return (
     <button
-      className={`cursor-pointer rounded-md border-2 border-blue-500 bg-white px-4 py-2 font-semibold text-stone-800 transition hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-50 ${pending ? "opacity-60" : ""}`}
+      className={`cursor-pointer rounded-md border-2 border-blue-500 bg-blue-500 px-4 py-2 font-semibold text-white transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50 ${pending ? "opacity-60" : ""}`}
       disabled={pending}
     >
-      Confirm
+      Feed Now
     </button>
   );
 };

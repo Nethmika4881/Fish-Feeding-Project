@@ -7,6 +7,8 @@ export const getTankDetails = async function () {
     .from("tanks_details")
     .select("*");
 
+  console.log(tanksDetails, "tankdetails");
+
   if (error) throw new Error("Couldnt get the details about tanks");
 
   return tanksDetails;

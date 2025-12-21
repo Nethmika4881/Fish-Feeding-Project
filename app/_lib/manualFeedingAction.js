@@ -23,10 +23,12 @@ export const manualFeedingAction = async (formData) => {
     throw new Error("Couldn't update database");
   }
 
-  console.log(data, "recevied data");
+  console.log(data, "received data");
+
   try {
     const mqtt = getMQTTService();
-    mqtt.publish(topic, JSON.stringify(details));
+    await mqtt.connect(); // ✅ WAIT for connection
+    await mqtt.publish(topic, JSON.stringify(details)); // ✅ WAIT for publish
 
     await supabase
       .from("manual_feedings")

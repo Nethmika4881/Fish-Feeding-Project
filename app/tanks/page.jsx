@@ -1,5 +1,13 @@
+import Header from "./_components/Header";
+import TankList from "./_components/TankList";
+
 function page() {
-  return <div>Tanks</div>;
+  return (
+    <div>
+      <Header />
+      <TankList />
+    </div>
+  );
 }
 
 export default page;

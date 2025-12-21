@@ -1,5 +1,13 @@
+import Header from "./_components/Header";
+import TableComp from "./_components/Table";
+
 function page() {
-  return <div>Feeding Schedule</div>;
+  return (
+    <div>
+      <Header />
+      <TableComp />
+    </div>
+  );
 }
 
 export default page;
