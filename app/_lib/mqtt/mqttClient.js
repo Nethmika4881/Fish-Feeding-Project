@@ -97,6 +97,7 @@ function getMQTTService() {
   if (!client) connect();
 
   return {
+    connect,
     publish,
     subscribe,
     getConnectionStatus,

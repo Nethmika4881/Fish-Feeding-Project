@@ -2,6 +2,7 @@
 import { User } from "lucide-react";
 import { Poppins } from "next/font/google";
 import DividerComponent from "./Divider";
+import { Separator } from "@/components/ui/separator";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -15,7 +16,7 @@ function Brand() {
         <Logo />
         <BrandName />
       </div>
-      <DividerComponent orientation="horizontal" />
+      <Separator className="mt-3 bg-slate-700" />
     </div>
   );
 }

@@ -3,8 +3,6 @@ import { Inter } from "next/font/google";
 import Header from "./_components/Header";
 import Sidebar from "./_components/Sidebar";
 import "./globals.css";
-import Providers from "./providers";
-
 import Footer from "./_components/Footer";
 const inter = Inter({
   subsets: ["latin"],
@@ -24,9 +22,7 @@ export default function RootLayout({ children }) {
         <div className="flex h-screen flex-col justify-between lg:grid lg:grid-cols-[18rem_1fr] lg:grid-rows-[auto_1fr]">
           {/* Sidebar spans all rows on desktop */}
           <aside className="row-span-2 hidden lg:block">
-            <Providers>
-              <Sidebar />
-            </Providers>
+            <Sidebar />
           </aside>
           {/* Header */}
           <Header />
