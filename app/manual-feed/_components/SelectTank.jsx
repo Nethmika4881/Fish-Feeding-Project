@@ -12,7 +12,7 @@ export default function SelectTank({ tanks, id }) {
         </option>
         {tanks.map((tank) => (
           <option key={tank.id} value={tank.id} className="py-3 text-gray-800">
-            {tank.name}
+            {tank.tank_name}
           </option>
         ))}
       </select>

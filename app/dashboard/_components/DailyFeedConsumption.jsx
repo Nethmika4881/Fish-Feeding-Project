@@ -2,7 +2,6 @@
 import {
   Area,
   AreaChart,
-  CartesianGrid,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -34,7 +33,7 @@ function DailyFeedConsumption() {
   return (
     <div className="rounded-xl bg-white px-4 py-4 text-[.7rem] shadow-sm">
       <Heading />
-      <ResponsiveContainer width="100%" className="ml-aut\ my-10" height={300}>
+      <ResponsiveContainer width="100%" className="my-10" height={300}>
         <AreaChart data={fakeData}>
           <defs>
             <linearGradient id="feedGradient" x1="0" y1="0" x2="0" y2="1">

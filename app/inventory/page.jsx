@@ -5,7 +5,7 @@ import InventoryList from "./_components/InventoryList";
 async function page() {
   const inventoryDetails = await getInventoryDetails();
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col pb-10">
       <Header />
       <InventoryList inventoryDetails={inventoryDetails} />
     </div>

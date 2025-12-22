@@ -8,9 +8,9 @@ async function page() {
   return (
     <div>
       <Header />
-      <Suspense fallback={<p>Loading....</p>}>
+      <div className="md:pt-2 md:pb-20">
         <BasicDetailsComponent profileDetails={profileDetails} />
-      </Suspense>
+      </div>
     </div>
   );
 }

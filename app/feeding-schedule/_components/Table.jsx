@@ -1,5 +1,6 @@
 "use client";
 
+import Spinner from "@/app/_components/Spinner";
 import { formatTimeHHMM } from "@/app/_services/helpUtils";
 import { getFeedingSchedule } from "@/app/_services/supabaseActions";
 import { Badge } from "@/components/ui/badge";
@@ -55,9 +56,9 @@ export default function FishFeedSchedule() {
   }, []);
 
   return (
-    <div className="mx-auto w-full max-w-7xl p-6">
+    <div className="mx-auto mt-5 w-full max-w-7xl md:mt-0 md:p-6">
       <div className="rounded-lg px-8 py-4 shadow-sm">
-        {loading && <p>Loading....</p>}
+        {loading && <Spinner />}
         {!loading && (
           <Table>
             <TableHeader>

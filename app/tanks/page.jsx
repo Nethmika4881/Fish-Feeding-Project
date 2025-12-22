@@ -5,7 +5,9 @@ function page() {
   return (
     <div>
       <Header />
-      <TankList />
+      <div className="pb-10 lg:py-0">
+        <TankList />
+      </div>
     </div>
   );
 }
