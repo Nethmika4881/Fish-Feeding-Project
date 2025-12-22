@@ -62,3 +62,24 @@ export const getDeviceDetails = async function () {
 
   return deviceDetails;
 };
+
+export const getProfileDetails = async function () {
+  const { data: profileDetails, error } = await supabase
+    .from("shop_profile")
+    .select("*");
+
+  console.log(profileDetails, "profileDetails");
+
+  if (error) throw new Error("Couldnt get the profile Details  ");
+
+  return profileDetails;
+};
+
+export const updateProfileDetails = async function (id, updateDetails) {
+  const { error } = await supabase
+    .from("shop_profile")
+    .update(updateDetails)
+    .eq("id", id);
+
+  if (error) throw new Error("Couldnt update the profile Details  ");
+};
