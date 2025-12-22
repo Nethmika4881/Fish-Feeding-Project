@@ -6,82 +6,92 @@ import { Fish, Thermometer, Droplets } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const maxTemp = 30;
-const minTemp = 10;
-const maxWaterLevel = 30;
+const MAX_TEMP = 30;
+const MIN_TEMP = 10;
 
 function TankCard({ tank }) {
   const {
     id: tankID,
-    name,
-    population,
-    temp: temperature,
-    water_level: waterLevel,
-    recommended_feed_limit_per_day: dailyFeedLimit,
+    tank_name: name,
+    fish_type: fishType,
+    fish_count: population,
     max_population: maxPopulation,
+    water_temperature: temperature,
+    water_level_status: waterLevelStatus,
+    recommended_feed_per_day: dailyFeedLimit,
   } = tank;
 
   return (
     <div className="min-h- w-full overflow-hidden rounded-xl bg-white shadow-sm">
       <CardHeader
         name={name}
+        fishType={fishType}
         temperature={temperature}
-        waterLevel={waterLevel}
+        waterLevelStatus={waterLevelStatus}
       />
+
       <div className="mt-4 space-y-2">
         <div className="flex flex-col gap-3 p-4">
-          <CardRow1 population={population} maxPopulation={maxPopulation} />
-          <CardRow2 temp={temperature} maxTemp={maxTemp} />
-          <CardRow3 waterLevel={waterLevel} />
-          <RecommendedFeedRow recommended_feed_limit_per_day={dailyFeedLimit} />
+          <CardRowPopulation
+            population={population}
+            maxPopulation={maxPopulation}
+          />
+          <CardRowWaterLevel waterLevelStatus={waterLevelStatus} />
+          <CardRowTemperature temperature={temperature} />
+          <RecommendedFeedRow dailyFeedLimit={dailyFeedLimit} />
         </div>
+
+        {/* Keep View Details button exactly at bottom */}
         <ViewDetailsButton tankID={tankID} />
       </div>
     </div>
   );
 }
 
-function computeIsHealthy(temperature, waterLevel) {
-  if (
-    temperature < minTemp ||
-    temperature > maxTemp ||
-    waterLevel < maxWaterLevel
-  ) {
+function computeHealthStatus(temp, waterLevelStatus) {
+  if (temp < MIN_TEMP || temp > MAX_TEMP || waterLevelStatus === "low") {
     return "warning";
   }
   return "healthy";
 }
 
-function CardBadge({ temperature, waterLevel }) {
-  const status = computeIsHealthy(temperature, waterLevel);
+function CardBadge({ temperature, waterLevelStatus }) {
+  const status = computeHealthStatus(temperature, waterLevelStatus);
   const variant = status === "warning" ? "destructive" : "default";
+
   return (
     <Badge
       variant={variant}
-      className={status === "healthy" ? "bg-green-500 hover:bg-green-600" : ""}
+      className={
+        status === "healthy" ? "bg-green-500 text-white hover:bg-green-600" : ""
+      }
     >
       {status.charAt(0).toUpperCase() + status.slice(1)}
     </Badge>
   );
 }
 
-function CardHeader({ name, temperature, waterLevel }) {
+function CardHeader({ name, temperature, fishType, waterLevelStatus }) {
   return (
     <div className="flex items-center justify-between p-4">
-      <span className="text-lg font-semibold">{name}</span>
-      <CardBadge temperature={temperature} waterLevel={waterLevel} />
+      <div className="flex flex-col">
+        <span className="text-lg font-semibold">{name}</span>
+        <span className="text-[.8rem] opacity-50">{fishType}</span>
+      </div>
+      <CardBadge
+        temperature={temperature}
+        waterLevelStatus={waterLevelStatus}
+      />
     </div>
   );
 }
 
-function CardRow1({ population, maxPopulation }) {
+function CardRowPopulation({ population, maxPopulation }) {
   return (
     <div className="flex items-center justify-between">
-      <div className="text-muted-foreground flex items-center gap-2">
-        <Fish className="h-4 w-4" color="#64748B" />
-        <span className="text-[.8rem] text-[#64748B] opacity-80">
-          Population
-        </span>
+      <div className="text-muted-foreground flex items-center gap-2 text-[.8rem] opacity-80">
+        <Fish className="h-4 w-4" />
+        <span>Population</span>
       </div>
       <span className="text-[.9rem] font-semibold">
         {population}/{maxPopulation}
@@ -90,78 +100,64 @@ function CardRow1({ population, maxPopulation }) {
   );
 }
 
-function CardRow2({ temp, maxTemp }) {
+function CardRowTemperature({ temperature }) {
   const [progress, setProgress] = React.useState(0);
 
   React.useEffect(() => {
-    const timer = setTimeout(() => setProgress(temp), 100);
+    const timer = setTimeout(() => setProgress(temperature), 100);
     return () => clearTimeout(timer);
-  }, [temp]);
+  }, [temperature]);
 
-  // Scale temp to percentage (assuming 0-40°C range)
-  const progressValue = Math.min(Math.max((progress / maxTemp) * 100, 0), 100);
-  const isWarning = temp < minTemp || temp > maxTemp;
+  const progressValue = Math.min(Math.max((progress / MAX_TEMP) * 100, 0), 100);
+  const isWarning = temperature < MIN_TEMP || temperature > MAX_TEMP;
 
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
-        <div className="text-muted-foreground flex items-center gap-2">
-          <Thermometer className="h-4 w-4" color="#64748B" />
-          <span className="text-[.8rem] text-[#64748B] opacity-80">
-            Temperature
-          </span>
+        <div className="text-muted-foreground flex items-center gap-2 text-[.8rem] opacity-80">
+          <Thermometer className="h-4 w-4" />
+          <span>Temperature</span>
         </div>
-        <span className="text-[.9rem] font-semibold">{temp}°C</span>
+        <span className="text-[.9rem] font-semibold">{temperature}°C</span>
       </div>
       <Progress
         value={progressValue}
-        className={`w-full ${isWarning ? "bg-red-200 [&>div]:bg-red-500" : "bg-blue-200 [&>div]:bg-blue-500"}`}
+        className={`w-full ${
+          isWarning
+            ? "bg-red-200 [&>div]:bg-red-500"
+            : "bg-blue-200 [&>div]:bg-blue-500"
+        }`}
       />
     </div>
   );
 }
 
-function CardRow3({ waterLevel }) {
-  const [progress, setProgress] = React.useState(0);
-
-  React.useEffect(() => {
-    const timer = setTimeout(() => setProgress(waterLevel), 100);
-    return () => clearTimeout(timer);
-  }, [waterLevel]);
-
-  const progressValue = Math.min(Math.max((progress / 100) * 100, 0), 100);
-  const isLow = waterLevel < maxWaterLevel;
+function CardRowWaterLevel({ waterLevelStatus }) {
+  const progressValue = waterLevelStatus === "normal" ? 100 : 50;
+  const isLow = waterLevelStatus === "low";
 
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
-        <div className="text-muted-foreground flex items-center gap-2">
-          <Droplets className="h-4 w-4" color="#64748B" />
-          <span className="text-[.8rem] text-[#64748B] opacity-80">
-            Water Level
-          </span>
+        <div className="text-muted-foreground flex items-center gap-2 text-[.8rem] opacity-80">
+          <Droplets className="h-4 w-4" />
+          <span>Water Level</span>
         </div>
-        <span className="text-[.9rem] font-semibold">{waterLevel}%</span>
+        <span className="text-[.9rem] font-semibold">{waterLevelStatus}</span>
       </div>
-      <Progress
-        value={progressValue}
-        className={`w-full ${isLow ? "bg-red-200 [&>div]:bg-red-500" : "bg-blue-200 [&>div]:bg-blue-500"}`}
-      />
     </div>
   );
 }
 
-function RecommendedFeedRow({ recommended_feed_limit_per_day }) {
+function RecommendedFeedRow({ dailyFeedLimit }) {
   return (
-    <div className="mt-10 rounded-xl bg-[#F1F5F9] px-4 py-3 text-[.7rem]">
-      <span className="text-stone-400"> Recommended Feed:</span>{" "}
-      <span className="font-semibold">
-        {" "}
-        {recommended_feed_limit_per_day}g / day
-      </span>
+    <div className="mt-4 rounded-xl bg-[#F1F5F9] px-4 py-3 text-[.7rem]">
+      <span className="text-stone-400">Recommended Feed:</span>{" "}
+      <span className="font-semibold">{dailyFeedLimit}g / day</span>
     </div>
   );
 }
+
 function ViewDetailsButton({ tankID }) {
   const pathname = usePathname();
   return (
