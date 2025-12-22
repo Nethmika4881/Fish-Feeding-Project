@@ -13,10 +13,8 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import toast from "react-hot-toast";
-import { useFormState } from "react-dom";
 
 function BasicDetailsComponent({ profileDetails }) {
-  const [state, action] = useFormState(profileDetailsAction, {});
   const [isUpadating, setIsUpdating] = useState(false);
   const {
     shop_name: shopName,
@@ -120,11 +118,7 @@ function BasicDetailsComponent({ profileDetails }) {
           </FieldSet>
 
           <Field orientation="horizontal">
-            <Button
-              onClick={handleSubmit}
-              disabled={isUpadating}
-              className="bg-blue-600 text-white"
-            >
+            <Button onClick={handleSubmit} className="bg-blue-600 text-white">
               Save Changes
             </Button>
             <Button

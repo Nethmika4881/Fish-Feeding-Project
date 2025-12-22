@@ -57,8 +57,12 @@ export default function FishFeedSchedule() {
 
   return (
     <div className="mx-auto mt-5 w-full max-w-7xl md:mt-0 md:p-6">
-      <div className="rounded-lg px-8 py-4 shadow-sm">
-        {loading && <Spinner />}
+      <div className="min-h-100 rounded-lg px-8 py-4 shadow-sm">
+        {loading && (
+          <div className="mt-10">
+            <Spinner />
+          </div>
+        )}
         {!loading && (
           <Table>
             <TableHeader>

@@ -31,7 +31,7 @@ const colors = isDarkMode
     };
 function DailyFeedConsumption() {
   return (
-    <div className="rounded-xl bg-white px-4 py-4 text-[.7rem] shadow-sm">
+    <div className="col-span-2 rounded-xl bg-white px-4 py-4 text-[.7rem] shadow-sm lg:col-span-1">
       <Heading />
       <ResponsiveContainer width="100%" className="my-10" height={300}>
         <AreaChart data={fakeData}>

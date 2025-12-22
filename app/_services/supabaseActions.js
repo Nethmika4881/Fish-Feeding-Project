@@ -83,3 +83,13 @@ export const updateProfileDetails = async function (id, updateDetails) {
 
   if (error) throw new Error("Couldnt update the profile Details  ");
 };
+
+export const getAlerts = async function () {
+  const { data, error } = await supabase
+    .from("alerts")
+    .select("*,tanks(tank_name),devices(device_code,status)");
+
+  if (error) throw new Error("Couldnt get the alerts  ");
+
+  return data.filter((x) => x.is_read === false);
+};
