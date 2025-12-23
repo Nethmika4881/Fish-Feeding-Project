@@ -25,18 +25,21 @@ export const getFeedingSchedule = async function () {
 
   return feedingSchedule;
 };
-
 export const getUpcomingFeedingScheduleForToday = async function () {
+  const now = new Date();
+  const currentTime = now.toTimeString().slice(0, 8);
+
   const { data, error } = await supabase
     .from("feeding_schedules")
-    .select("*,tanks(tank_name)")
-    .gt("feed_time", new Date().toLocaleTimeString("en-GB")); // e.g., "12:40:12"
+    .select("*, tanks(tank_name)")
+    .gt("feed_time", currentTime)
+    .order("feed_time", { ascending: true });
 
-  console.log(data, "Data now");
   if (error) {
     console.error(error);
     return [];
   }
+
   return data;
 };
 export const getInventoryDetails = async function () {
@@ -50,6 +53,16 @@ export const getInventoryDetails = async function () {
     throw new Error("Couldnt get the details about Inventory Details  ");
 
   return inventoryDetails;
+};
+
+export const updateInventoryDetails = async function (id, details) {
+  const { error } = await supabase
+    .from("feed_inventory")
+    .update([details])
+    .eq("id", id)
+    .eq("shop_id", "4e7ab86b-37b2-40e8-a789-01f675d6df3b");
+  console.log(id, details, "love");
+  if (error) throw new Error("Couldnt update the Inventory Details  ");
 };
 
 export const getDeviceDetails = async function () {

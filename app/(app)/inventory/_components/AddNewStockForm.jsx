@@ -22,6 +22,8 @@ import {
 } from "@/components/ui/select";
 import { Plus } from "lucide-react";
 import { useFormStatus } from "react-dom";
+import { updateFeedStocks } from "@/app/_services/actions";
+import toast from "react-hot-toast";
 
 export default function AddFeedStockForm({ inventoryDetails }) {
   const [selectedFeed, setSelectedFeed] = useState("");
@@ -39,26 +41,26 @@ export default function AddFeedStockForm({ inventoryDetails }) {
 
     const formData = new FormData(event.currentTarget);
 
-    const submitData = {
-      feedId: formData.get("feedType"),
-      currentQuantity: Number(formData.get("quantity")),
-      addStock: Number(formData.get("add_stock")),
-      maxStock: Number(formData.get("max_stock")),
-      costPerKg: Number(formData.get("cost")),
-      // Calculate new quantity
-      newQuantity:
-        Number(formData.get("quantity")) + Number(formData.get("add_stock")),
-    };
+    // const submitData = {
+    //   feedId: formData.get("feedType"),
+    //   currentQuantity: Number(formData.get("quantity")),
+    //   addStock: Number(formData.get("add_stock")),
+    //   maxStock: Number(formData.get("max_stock")),
+    //   costPerKg: Number(formData.get("cost")),
+    //   // Calculate new quantity
+    //   newQuantity:
+    //     Number(formData.get("quantity")) + Number(formData.get("add_stock")),
+    // };
 
-    console.log("Form submitted with data:", submitData);
+    // console.log("Form submitted with data:", submitData);
 
     // Add your API call here
-    // const result = await updateFeedStock(submitData);
-    // if (result?.error) {
-    //   toast.error(result.error);
-    //   return;
-    // }
-    // toast.success("Stock updated successfully");
+    const result = await updateFeedStocks(formData);
+    if (result?.error) {
+      toast.error(result.error);
+      return;
+    }
+    toast.success("Stock updated successfully");
 
     setOpen(false);
     event.currentTarget.reset();
@@ -105,7 +107,11 @@ export default function AddFeedStockForm({ inventoryDetails }) {
                 ))}
               </SelectContent>
             </Select>
-            <input type="hidden" name="feedType" value={selectedFeed} />
+            <input
+              type="hidden"
+              name="feed_id"
+              value={inventoryFeedDetailsObj?.id || ""}
+            />
           </div>
 
           <div className="space-y-2">
@@ -143,8 +149,25 @@ export default function AddFeedStockForm({ inventoryDetails }) {
               type="number"
               step="0.01"
               min="0"
-              key={inventoryFeedDetailsObj?.id} // Force re-render when selection changes
+              key={inventoryFeedDetailsObj?.id}
               defaultValue={inventoryFeedDetailsObj?.maxCapacity_kg || ""}
+              placeholder="e.g., 250"
+              required
+              className="border-none shadow-sm focus-visible:ring-2 focus-visible:ring-[#50A2FF] focus-visible:ring-offset-2"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="min_stock">Expected Minimum Stock (kg)</Label>
+            <Input
+              id="min_stock"
+              name="min_stock"
+              type="number"
+              step="0.01"
+              min="0"
+              key={inventoryFeedDetailsObj?.id}
+              defaultValue={
+                inventoryFeedDetailsObj?.low_stock_threshold_kg || ""
+              }
               placeholder="e.g., 250"
               required
               className="border-none shadow-sm focus-visible:ring-2 focus-visible:ring-[#50A2FF] focus-visible:ring-offset-2"
@@ -159,7 +182,7 @@ export default function AddFeedStockForm({ inventoryDetails }) {
               type="number"
               step="0.01"
               min="0"
-              key={`cost-${inventoryFeedDetailsObj?.id}`} // Force re-render when selection changes
+              key={`cost-${inventoryFeedDetailsObj?.id}`}
               defaultValue={inventoryFeedDetailsObj?.cost_per_kg || ""}
               placeholder="e.g., 12.50"
               required

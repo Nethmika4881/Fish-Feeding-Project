@@ -5,6 +5,7 @@ import {
   addANewSchedule,
   addANewTank,
   getExistingTankNamesOfASpecificUser,
+  updateInventoryDetails,
   updateProfileDetails,
 } from "./supabaseActions";
 
@@ -68,6 +69,7 @@ export const addNewTankAction = async (formData) => {
 
 export const addNewFeedSchedule = async (formData) => {
   console.log(formData, "formdata");
+
   try {
     const details = {
       shop_id: "4e7ab86b-37b2-40e8-a789-01f675d6df3b",
@@ -90,5 +92,27 @@ export const addNewFeedSchedule = async (formData) => {
   } catch (error) {
     console.error("Full error:", error);
     return { error: error.message || "Failed to create schedule" };
+  }
+};
+
+export const updateFeedStocks = async function (formData) {
+  console.log(formData, "got go g");
+  const id = formData.get("feed_id");
+  try {
+    const details = {
+      quantity_now_kg:
+        Number(formData.get("quantity")) + Number(formData.get("add_stock")),
+      maxCapacity_kg: Number(formData.get("max_stock")),
+      cost_per_kg: Number(formData.get("cost")),
+      low_stock_threshold_kg: Number(formData.get("min_stock")),
+    };
+    const result = await updateInventoryDetails(id, details);
+    revalidatePath("/inventory");
+    revalidatePath("/analytics");
+
+    return { success: true };
+  } catch (error) {
+    console.error("Full error:", error);
+    return { error: error.message || "Failed to update inventory" };
   }
 };
