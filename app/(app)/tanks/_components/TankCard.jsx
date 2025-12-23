@@ -162,13 +162,13 @@ function ViewDetailsButton({ tankID }) {
   const pathname = usePathname();
   return (
     <div className="bg-stone-200 text-sm">
-      <Link
+      {/* <Link
         href={`${pathname}/tankDetails/${tankID}`}
         className="inline-flex h-12 w-full items-center justify-between px-4 py-2 text-[.8rem] font-semibold"
       >
         <span>View Details</span>
         <span>&rarr;</span>
-      </Link>
+      </Link> */}
     </div>
   );
 }
