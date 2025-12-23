@@ -6,7 +6,7 @@ async function page() {
   const inventoryDetails = await getInventoryDetails();
   return (
     <div className="flex flex-col pb-10">
-      <Header />
+      <Header inventoryDetails={inventoryDetails} />
       <InventoryList inventoryDetails={inventoryDetails} />
     </div>
   );

@@ -32,6 +32,7 @@ export const getUpcomingFeedingScheduleForToday = async function () {
     .select("*,tanks(tank_name)")
     .gt("feed_time", new Date().toLocaleTimeString("en-GB")); // e.g., "12:40:12"
 
+  console.log(data, "Data now");
   if (error) {
     console.error(error);
     return [];
@@ -92,4 +93,42 @@ export const getAlerts = async function () {
   if (error) throw new Error("Couldnt get the alerts  ");
 
   return data.filter((x) => x.is_read === false);
+};
+
+export const addANewTank = async function (details) {
+  const { error } = await supabase.from("tanks").insert(details).select();
+
+  if (error) throw new Error("Couldnt add the tank");
+};
+
+export const addANewSchedule = async function (details) {
+  console.log(details, "details i got");
+  const { data, error } = await supabase
+    .from("feeding_schedules")
+    .insert(details)
+    .select(); // Add .select() to return the inserted data
+
+  if (error) {
+    console.error("Supabase error details:", {
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      code: error.code,
+    });
+    throw new Error(`Couldn't add the schedule: ${error.message}`);
+  }
+
+  console.log("Successfully inserted:", data);
+  return data;
+};
+
+export const getExistingTankNamesOfASpecificUser = async function (id) {
+  const { data, error } = await supabase
+    .from("tanks")
+    .select("tank_name")
+    .eq("shop_id", id);
+
+  if (error) throw new Error("Couldnt get the tank names  ");
+
+  return data;
 };

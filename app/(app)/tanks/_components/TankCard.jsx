@@ -49,6 +49,7 @@ function TankCard({ tank }) {
 }
 
 function computeHealthStatus(temp, waterLevelStatus) {
+  if (!temp) return "data error";
   if (temp < MIN_TEMP || temp > MAX_TEMP || waterLevelStatus === "low") {
     return "warning";
   }
@@ -118,7 +119,9 @@ function CardRowTemperature({ temperature }) {
           <Thermometer className="h-4 w-4" />
           <span>Temperature</span>
         </div>
-        <span className="text-[.9rem] font-semibold">{temperature}°C</span>
+        <span className="text-[.9rem] font-semibold">
+          {temperature || "_ _"}°C
+        </span>
       </div>
       <Progress
         value={progressValue}

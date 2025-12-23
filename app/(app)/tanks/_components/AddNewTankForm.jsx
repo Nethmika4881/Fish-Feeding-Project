@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,24 +21,25 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus } from "lucide-react";
+import { addNewTankAction } from "@/app/_services/actions";
+import toast from "react-hot-toast";
+import { useFormStatus } from "react-dom";
 
 export default function AddNewTankForm() {
   const [open, setOpen] = useState(false);
-
   const handleSubmit = async (event) => {
     event.preventDefault();
 
     const formData = new FormData(event.currentTarget);
+    const res = await addNewTankAction(formData);
 
-    console.log("Tank data:", {
-      tankName: formData.get("tankName"),
-      fishType: formData.get("fishType"),
-      population: formData.get("population"),
-      capacity: formData.get("capacity"),
-    });
+    if (res?.error) {
+      toast.error(res.error);
+      return;
+    }
 
+    toast.success("Successfully created new tank");
     setOpen(false);
-    event.currentTarget.reset();
   };
 
   return (
@@ -114,24 +115,69 @@ export default function AddNewTankForm() {
             />
           </div>
 
+          {/* Tank Volume */}
+          <div className="space-y-2">
+            <Label htmlFor="tankVolumeLiters">Tank Volume (Liters)</Label>
+            <Input
+              id="tankVolumeLiters"
+              name="tankVolumeLiters"
+              type="number"
+              placeholder="e.g., 2"
+              required
+              className="border-none shadow-sm focus-visible:ring-2 focus-visible:ring-[#50A2FF] focus-visible:ring-offset-2"
+            />
+          </div>
+
+          {/* Recommended feed per day */}
+          <div className="space-y-2">
+            <Label htmlFor="recommendedFeedPerDay">
+              Recommended Feed Per Day (grams)
+            </Label>
+            <Input
+              id="recommendedFeedPerDay"
+              name="recommendedFeedPerDay"
+              type="number"
+              placeholder="e.g., 200"
+              required
+              className="border-none shadow-sm focus-visible:ring-2 focus-visible:ring-[#50A2FF] focus-visible:ring-offset-2"
+            />
+          </div>
+
           <DialogFooter className="flex gap-3 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-              className="cursor-pointer"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              className="cursor-pointer bg-[#0DA2E7] text-white hover:bg-[#0DA2E7]/90"
-            >
-              Create Tank
-            </Button>
+            <CancelButton />
+            <SubmitButton />
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
   );
 }
+
+const SubmitButton = function () {
+  const { pending } = useFormStatus();
+  return (
+    <Button
+      type="submit"
+      disabled={pending}
+      className="cursor-pointer bg-[#0DA2E7] text-white hover:bg-[#0DA2E7]/90"
+    >
+      Create Tank
+    </Button>
+  );
+};
+
+const CancelButton = function () {
+  const { pending } = useFormStatus();
+
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      onClick={() => setOpen(false)}
+      className="cursor-pointer"
+      disabled={pending}
+    >
+      Cancel
+    </Button>
+  );
+};

@@ -1,7 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { updateProfileDetails } from "./supabaseActions";
+import {
+  addANewSchedule,
+  addANewTank,
+  getExistingTankNamesOfASpecificUser,
+  updateProfileDetails,
+} from "./supabaseActions";
 
 export const profileDetailsAction = async (formData) => {
   const phone = formData.get("phonenumber")?.trim();
@@ -29,4 +34,61 @@ export const profileDetailsAction = async (formData) => {
   revalidatePath("/settings");
 
   return { success: true };
+};
+
+export const addNewTankAction = async (formData) => {
+  const tanks = await getExistingTankNamesOfASpecificUser(
+    "4e7ab86b-37b2-40e8-a789-01f675d6df3b",
+  );
+  const tankNames = tanks.map((tank) => tank.tank_name);
+  try {
+    const details = {
+      shop_id: "4e7ab86b-37b2-40e8-a789-01f675d6df3b",
+      tank_name: formData.get("tankName"),
+      fish_type: formData.get("fishType"),
+      fish_count: Number(formData.get("population")),
+      max_population: Number(formData.get("capacity")),
+      tank_volume_liters: Number(formData.get("tankVolumeLiters")),
+      recommended_feed_per_day: Number(formData.get("recommendedFeedPerDay")),
+    };
+
+    if (tankNames.includes(details.tank_name)) {
+      throw new Error("This tank name is already exist");
+    }
+    await addANewTank([details]);
+
+    revalidatePath("/tanks");
+
+    return { success: true };
+  } catch (error) {
+    console.error(error);
+    return { error: error.message || "Failed to create tank" };
+  }
+};
+
+export const addNewFeedSchedule = async (formData) => {
+  console.log(formData, "formdata");
+  try {
+    const details = {
+      shop_id: "4e7ab86b-37b2-40e8-a789-01f675d6df3b",
+      tank_id: formData.get("tank"),
+      feed_type: formData.get("feed-type"),
+      feed_time: formData.get("time"),
+      feed_amount: Number(formData.get("amount")),
+      today_status: "not-info",
+      is_enabled: true, // Set to true by default
+    };
+
+    console.log(details, "DETAILSSSSSSS");
+    const result = await addANewSchedule([details]);
+    console.log("Insert result:", result);
+
+    revalidatePath("/feeding-schedule");
+    revalidatePath("/dashboard");
+
+    return { success: true };
+  } catch (error) {
+    console.error("Full error:", error);
+    return { error: error.message || "Failed to create schedule" };
+  }
 };

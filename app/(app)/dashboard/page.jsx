@@ -9,6 +9,7 @@ import WarningList from "./_components/WarningList";
 
 async function page() {
   const upcomingFeeds = await getUpcomingFeedingScheduleForToday();
+
   const alerts = await getAlerts();
   const now = new Date();
   const pastAlerts = alerts.filter(

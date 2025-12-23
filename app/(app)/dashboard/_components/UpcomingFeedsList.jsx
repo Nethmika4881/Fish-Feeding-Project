@@ -1,14 +1,14 @@
 import UpcomingFeedsCard from "./UpcomingFeedsCard";
 
 function UpcomingFeedsList({ upcomingFeeds }) {
-  const feeds = upcomingFeeds.filter((x) => x.today_status === "pending");
+  console.log("upcoming", upcomingFeeds);
   return (
     <div className="flex flex-col gap-4">
-      {feeds.map((feed) => (
+      {upcomingFeeds.map((feed) => (
         <UpcomingFeedsCard
           key={feed.id}
           feed={feed}
-          isLast={feeds.at(-1) === feed}
+          isLast={upcomingFeeds.at(-1) === feed}
         />
       ))}
     </div>

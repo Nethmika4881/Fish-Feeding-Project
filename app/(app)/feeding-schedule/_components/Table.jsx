@@ -18,7 +18,7 @@ import { useEffect, useState } from "react";
 
 function StatusBadge({ status }) {
   const variant =
-    status === "completed"
+    status === "completed" || status === "not-info"
       ? "default"
       : status === "pending"
         ? "warning"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,24 +21,48 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus } from "lucide-react";
+import { useFormStatus } from "react-dom";
 
-export default function AddFeedStockForm() {
+export default function AddFeedStockForm({ inventoryDetails }) {
+  const [selectedFeed, setSelectedFeed] = useState("");
   const [open, setOpen] = useState(false);
+
+  const inventoryFeedDetailsObj = useMemo(() => {
+    if (!selectedFeed) return null;
+    return inventoryDetails.find((t) => t.id === selectedFeed);
+  }, [selectedFeed, inventoryDetails]);
+
+  console.log(inventoryFeedDetailsObj);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
     const formData = new FormData(event.currentTarget);
 
-    console.log("Form submitted with data:", {
-      feedType: formData.get("feedType"),
-      quantity: formData.get("quantity"),
-      supplier: formData.get("supplier"),
-      cost: formData.get("cost"),
-    });
+    const submitData = {
+      feedId: formData.get("feedType"),
+      currentQuantity: Number(formData.get("quantity")),
+      addStock: Number(formData.get("add_stock")),
+      maxStock: Number(formData.get("max_stock")),
+      costPerKg: Number(formData.get("cost")),
+      // Calculate new quantity
+      newQuantity:
+        Number(formData.get("quantity")) + Number(formData.get("add_stock")),
+    };
+
+    console.log("Form submitted with data:", submitData);
+
+    // Add your API call here
+    // const result = await updateFeedStock(submitData);
+    // if (result?.error) {
+    //   toast.error(result.error);
+    //   return;
+    // }
+    // toast.success("Stock updated successfully");
 
     setOpen(false);
     event.currentTarget.reset();
+    setSelectedFeed("");
   };
 
   return (
@@ -52,7 +76,7 @@ export default function AddFeedStockForm() {
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="bg-white sm:max-w-130">
+      <DialogContent className="bg-white sm:max-w-[650px]">
         <DialogHeader className="space-y-2">
           <DialogTitle className="text-xl font-semibold text-slate-900">
             Add Feed Stock
@@ -65,42 +89,63 @@ export default function AddFeedStockForm() {
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
             <Label htmlFor="feed-type">Feed Type</Label>
-            <Select name="feedType" required>
+            <Select
+              value={selectedFeed}
+              onValueChange={setSelectedFeed}
+              required
+            >
               <SelectTrigger id="feed-type">
                 <SelectValue placeholder="Select feed type" />
               </SelectTrigger>
               <SelectContent className="bg-white">
-                <SelectItem value="premium-koi">
-                  Premium Koi Pellets (L)
-                </SelectItem>
-                <SelectItem value="tropical-micro">
-                  Tropical Micro Pellets
-                </SelectItem>
-                <SelectItem value="cichlid-sticks">Cichlid Sticks</SelectItem>
+                {inventoryDetails.map((inventory) => (
+                  <SelectItem key={inventory.id} value={inventory.id}>
+                    {inventory.feed_name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
+            <input type="hidden" name="feedType" value={selectedFeed} />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="quantity">Quantity (kg)</Label>
+            <Label htmlFor="quantity">Current Quantity (kg)</Label>
             <Input
               id="quantity"
               name="quantity"
               type="number"
               step="0.01"
-              placeholder="e.g., 25"
+              value={inventoryFeedDetailsObj?.quantity_now_kg || 0}
+              readOnly
+              className="border-none bg-slate-50 text-slate-600 shadow-sm"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="add_stock">Add Stock (kg)</Label>
+            <Input
+              id="add_stock"
+              name="add_stock"
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="e.g., 50"
               required
               className="border-none shadow-sm focus-visible:ring-2 focus-visible:ring-[#50A2FF] focus-visible:ring-offset-2"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="supplier">Supplier</Label>
+            <Label htmlFor="max_stock">Expected Maximum Stock (kg)</Label>
             <Input
-              id="supplier"
-              name="supplier"
-              type="text"
-              placeholder="e.g., AquaCorp"
+              id="max_stock"
+              name="max_stock"
+              type="number"
+              step="0.01"
+              min="0"
+              key={inventoryFeedDetailsObj?.id} // Force re-render when selection changes
+              defaultValue={inventoryFeedDetailsObj?.maxCapacity_kg || ""}
+              placeholder="e.g., 250"
               required
               className="border-none shadow-sm focus-visible:ring-2 focus-visible:ring-[#50A2FF] focus-visible:ring-offset-2"
             />
@@ -113,9 +158,12 @@ export default function AddFeedStockForm() {
               name="cost"
               type="number"
               step="0.01"
-              className="border-none shadow-sm focus-visible:ring-2 focus-visible:ring-[#50A2FF] focus-visible:ring-offset-2"
+              min="0"
+              key={`cost-${inventoryFeedDetailsObj?.id}`} // Force re-render when selection changes
+              defaultValue={inventoryFeedDetailsObj?.cost_per_kg || ""}
               placeholder="e.g., 12.50"
               required
+              className="border-none shadow-sm focus-visible:ring-2 focus-visible:ring-[#50A2FF] focus-visible:ring-offset-2"
             />
           </div>
 
@@ -128,15 +176,23 @@ export default function AddFeedStockForm() {
             >
               Cancel
             </Button>
-            <Button
-              type="submit"
-              className="cursor-pointer bg-[#0DA2E7] text-white hover:bg-[#0DA2E7]/90"
-            >
-              Add to Inventory
-            </Button>
+            <SubmitButton />
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
   );
 }
+
+const SubmitButton = function () {
+  const { pending } = useFormStatus();
+  return (
+    <Button
+      type="submit"
+      disabled={pending}
+      className="cursor-pointer bg-[#0DA2E7] text-white hover:bg-[#0DA2E7]/90"
+    >
+      {pending ? "Updating..." : "Add to Inventory"}
+    </Button>
+  );
+};

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useTankDetails } from "@/app/_context/tankDetailsContext";
+import { addNewFeedSchedule } from "@/app/_services/actions";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,9 +22,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus } from "lucide-react";
+import { useState } from "react";
+import { useFormStatus } from "react-dom";
+import toast from "react-hot-toast";
 
 export default function AddScheduleForm() {
+  const { tanksDetails, loading } = useTankDetails();
   const [open, setOpen] = useState(false);
+  const [tankId, setTankId] = useState("");
+  const [feedType, setFeedType] = useState(""); // Add state for feed type
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -33,13 +40,27 @@ export default function AddScheduleForm() {
     console.log("Form submitted with data:", {
       tank: formData.get("tank"),
       time: formData.get("time"),
-      feedType: formData.get("feedType"),
+      feedType: formData.get("feed-type"),
       amount: formData.get("amount"),
     });
 
+    const res = await addNewFeedSchedule(formData);
+    console.log(res, "Res");
+
+    if (res?.error) {
+      toast.error(res.error);
+      return;
+    }
+
+    toast.success("Successfully created new schedule");
+
     setOpen(false);
     event.currentTarget.reset();
+    setTankId("");
+    setFeedType(""); // Reset feed type
   };
+
+  if (loading) return;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -64,25 +85,20 @@ export default function AddScheduleForm() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
-            <Label
-              htmlFor="tank"
-              className="text-base font-medium text-slate-900"
-            >
-              Tank
-            </Label>
-            <Select name="tank" required>
-              <SelectTrigger
-                id="tank"
-                className="w-full rounded-lg border-2 border-[#0DA2E7] bg-white px-4 py-3 text-base text-slate-500"
-              >
+            <Label>Tank</Label>
+            <Select value={tankId} onValueChange={setTankId} required>
+              <SelectTrigger>
                 <SelectValue placeholder="Select tank" />
               </SelectTrigger>
               <SelectContent className="bg-white">
-                <SelectItem value="tank-1">Tank 1 - Koi Pond</SelectItem>
-                <SelectItem value="tank-2">Tank 2 - Tropical</SelectItem>
-                <SelectItem value="tank-3">Tank 3 - Cichlid</SelectItem>
+                {tanksDetails.map((tank) => (
+                  <SelectItem key={tank.id} value={tank.id}>
+                    {tank.tank_name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
+            <input type="hidden" name="tank" value={tankId} />
           </div>
 
           <div className="space-y-2">
@@ -90,12 +106,13 @@ export default function AddScheduleForm() {
               htmlFor="time"
               className="text-base font-medium text-slate-900"
             >
-              Time
+              Time (24-hour format)
             </Label>
             <Input
               id="time"
               name="time"
               type="time"
+              step="1"
               required
               className="border-none shadow-sm focus-visible:ring-2 focus-visible:ring-[#50A2FF] focus-visible:ring-offset-2"
             />
@@ -108,7 +125,7 @@ export default function AddScheduleForm() {
             >
               Feed Type
             </Label>
-            <Select name="feedType" required>
+            <Select value={feedType} onValueChange={setFeedType} required>
               <SelectTrigger
                 id="feed-type"
                 className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-base text-slate-500"
@@ -125,6 +142,7 @@ export default function AddScheduleForm() {
                 <SelectItem value="cichlid-sticks">Cichlid Sticks</SelectItem>
               </SelectContent>
             </Select>
+            <input type="hidden" name="feed-type" value={feedType} />
           </div>
 
           <div className="space-y-2">
@@ -146,23 +164,40 @@ export default function AddScheduleForm() {
           </div>
 
           <DialogFooter className="flex gap-3 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-              className="cursor-pointer rounded-lg border border-slate-300 bg-white px-8 py-3 text-base font-medium text-slate-700 hover:bg-slate-50"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              className="cursor-pointer rounded-lg bg-[#0DA2E7] px-8 py-3 text-base font-medium text-white hover:bg-[#0DA2E7]/90"
-            >
-              Create Schedule
-            </Button>
+            <CancelButton setOpen={setOpen} />
+            <SubmitButton />
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
   );
 }
+
+const SubmitButton = function () {
+  const { pending } = useFormStatus();
+  return (
+    <Button
+      type="submit"
+      disabled={pending}
+      className="cursor-pointer bg-[#0DA2E7] text-white hover:bg-[#0DA2E7]/90"
+    >
+      {pending ? "Creating..." : "Create Schedule"}
+    </Button>
+  );
+};
+
+const CancelButton = function ({ setOpen }) {
+  const { pending } = useFormStatus();
+
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      onClick={() => setOpen(false)}
+      className="cursor-pointer"
+      disabled={pending}
+    >
+      Cancel
+    </Button>
+  );
+};
