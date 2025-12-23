@@ -2,7 +2,7 @@ import DashBoardButton from "./DashBoardButton";
 
 function ReadyToTransform() {
   return (
-    <div className="flex h-100 w-full flex-col items-center justify-center gap-5 border-y border-stone-200 bg-[#EDF5FA]">
+    <div className="my-10 flex h-100 w-full flex-col items-center justify-center gap-5 border-y border-stone-200 bg-[#EDF5FA] text-center">
       <h1 className="text-center text-4xl font-extrabold text-stone-800">
         Ready to Transform Your Fish Shop?
       </h1>

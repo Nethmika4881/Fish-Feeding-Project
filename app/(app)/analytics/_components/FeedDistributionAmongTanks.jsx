@@ -19,9 +19,9 @@ const data = [
 
 export default function FeedDistributionAmongTanks() {
   return (
-    <div className="mt-5 w-full rounded-xl bg-white p-4 shadow-sm">
+    <div className="mt-5 w-full rounded-xl bg-white p-2 shadow-sm">
       <Heading />
-      <div className="h-84 w-full">
+      <div className="hidden h-84 w-full md:block">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -47,6 +47,39 @@ export default function FeedDistributionAmongTanks() {
               verticalAlign="middle"
               align="right"
               layout="vertical"
+              iconSize={15}
+              iconType="circle"
+            />
+            <Tooltip formatter={(value) => `${value}g`} />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="h-84 w-full md:hidden">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={data}
+              dataKey="value"
+              nameKey="tank"
+              innerRadius={30}
+              outerRadius={50}
+              cx="50%"
+              cy="50%"
+              paddingAngle={2}
+              label={({ name, value }) => `${name}: ${value}g`} // show tank name + value
+            >
+              {data.map((entry) => (
+                <Cell
+                  key={entry.tank}
+                  fill={entry.color}
+                  stroke={entry.color}
+                />
+              ))}
+            </Pie>
+            <Legend
+              verticalAlign="bottom"
+              align="center"
+              layout="horizontal"
               iconSize={15}
               iconType="circle"
             />

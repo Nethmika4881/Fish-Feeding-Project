@@ -12,7 +12,7 @@ const inter = Inter({
 export default function DashboardLayout({ children }) {
   return (
     <div className={`${inter.className} h-screen overflow-hidden antialiased`}>
-      <div className="flex h-screen flex-col justify-between lg:grid lg:grid-cols-[18rem_1fr] lg:grid-rows-[auto_1fr]">
+      <div className="flex h-screen flex-col lg:grid lg:grid-cols-[18rem_1fr] lg:grid-rows-[auto_1fr]">
         <aside className="row-span-2 hidden lg:block">
           <Sidebar />
         </aside>

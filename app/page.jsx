@@ -8,7 +8,7 @@ import WhyChooseSection from "./_components_HOME/WhyChooseSection";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-[#F9FAFB] pb-1">
+    <div className="min-h-screen overflow-hidden bg-[#F9FAFB] pb-1 md:min-w-5xl lg:min-w-7xl">
       <Header />
       <HeroSection />
       <FeaturesSection />

@@ -17,7 +17,7 @@ function Topic() {
 
 function SubTopic() {
   return (
-    <h1 className="my-5 text-[#9CA6B5]">
+    <h1 className="my-5 text-center text-[#9CA6B5]">
       Everything you need to manage your fish feeding system efficiently
     </h1>
   );

@@ -2,7 +2,7 @@ import { Check } from "lucide-react";
 
 export default function WhyChooseSection() {
   return (
-    <section className="flex min-h-[calc(100vh-20rem)] items-center justify-center px-24">
+    <section className="flex min-h-[calc(100vh-20rem)] items-center justify-center lg:px-24">
       <div className="grid min-h-100 w-4/5 grid-cols-1 md:grid-cols-2">
         <LeftSide />
         <RightSide />
@@ -12,9 +12,9 @@ export default function WhyChooseSection() {
 }
 const LeftSide = function () {
   return (
-    <div className="grid place-items-start p-10">
+    <div className="grid place-items-start py-10 lg:p-10">
       <div className="flex flex-col gap-4">
-        <h1 className="text-4xl font-extrabold text-stone-800">
+        <h1 className="text-2xl font-extrabold text-stone-800 md:text-4xl">
           Why Choose AquaFeed Pro?
         </h1>
 
@@ -36,7 +36,7 @@ const RightSide = function () {
     "Instant alerts for any system issues",
   ];
   return (
-    <div className="grid place-items-start p-10">
+    <div className="grid place-items-start">
       <div className="flex flex-col gap-2">
         <ul className="flex flex-col gap-3">
           {reasons.map((reason, i) => (

@@ -7,9 +7,17 @@ import {
   Cpu,
   Eye,
   Hand,
-  HandCoins,
 } from "lucide-react";
 import FeatureBox from "./FeatureBox";
+
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 function FeatureList() {
   const features = [
@@ -57,7 +65,7 @@ function FeatureList() {
     },
   ];
   return (
-    <div className="grid grid-cols-4 gap-10">
+    <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
       {features.map((feature, i) => (
         <FeatureBox key={i} feature={feature} />
       ))}
