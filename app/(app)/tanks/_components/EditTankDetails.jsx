@@ -1,6 +1,11 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import {
+  addNewTankAction,
+  deleteTankAction,
+  updateExistingTankAction,
+} from "@/app/_services/actions";
+import { deleteTank } from "@/app/_services/supabaseActions";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,43 +25,78 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus } from "lucide-react";
-import { addNewTankAction } from "@/app/_services/actions";
-import toast from "react-hot-toast";
+import { useState } from "react";
 import { useFormStatus } from "react-dom";
+import toast from "react-hot-toast";
 
-export default function AddNewTankForm() {
+export default function EditTankDetails({ tank }) {
+  const [selectFishType, setSelectFishType] = useState(tank?.fish_type || "");
   const [open, setOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const {
+    id: tank_id,
+    tank_name: name,
+    fish_type: fishType,
+    fish_count: population,
+    max_population: maxPopulation,
+    tank_volume_liters: tankVolumeLiters,
+    recommended_feed_per_day: dailyFeedLimit,
+  } = tank || {};
+
   const handleSubmit = async (event) => {
-    event.preventDefault();
+    event?.preventDefault();
 
     const formData = new FormData(event.currentTarget);
-    const res = await addNewTankAction(formData);
+    const res = await updateExistingTankAction(tank_id, formData);
 
     if (res?.error) {
       toast.error(res.error);
       return;
     }
 
-    toast.success("Successfully created new tank");
+    toast.success("Successfully updated tank");
     setOpen(false);
+  };
+
+  const handleDelete = async () => {
+    // Add confirmation dialog
+    if (!confirm("Are you sure you want to delete this tank?")) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const res = await deleteTankAction(tank_id);
+      if (res?.error) {
+        toast.error(res.error);
+        return;
+      }
+      toast.success("Successfully deleted tank");
+      setOpen(false);
+    } catch (error) {
+      toast.error("Failed to delete tank");
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="cursor-pointer bg-[#0DA2E7] text-white hover:bg-[#0DA2E7]/90">
-          <Plus /> Add New Tank
+        <Button className="inline-flex h-12 w-full cursor-pointer items-center justify-between bg-[#ced4da] px-4 py-2 text-[.8rem] font-semibold transition-all duration-300 hover:bg-[#adb5bd] hover:opacity-80">
+          <span>View Details</span>
+          <span>&rarr;</span>
         </Button>
       </DialogTrigger>
 
       <DialogContent className="bg-white sm:max-w-[520px]">
         <DialogHeader className="space-y-2">
           <DialogTitle className="text-xl font-semibold">
-            Add New Tank
+            Edit Tank Details
           </DialogTitle>
           <DialogDescription>
-            Set up a new aquarium in the system.
+            Edit an existing aquarium in the system.
           </DialogDescription>
         </DialogHeader>
 
@@ -69,6 +109,7 @@ export default function AddNewTankForm() {
               name="tankName"
               placeholder="e.g., Tank A1"
               required
+              defaultValue={name}
               className="border-none shadow-sm focus-visible:ring-2 focus-visible:ring-[#50A2FF] focus-visible:ring-offset-2"
             />
           </div>
@@ -76,7 +117,12 @@ export default function AddNewTankForm() {
           {/* Fish Type */}
           <div className="space-y-2">
             <Label>Fish Type</Label>
-            <Select name="fishType" required>
+            <Select
+              name="fishType"
+              required
+              value={selectFishType}
+              onValueChange={setSelectFishType}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select fish type" />
               </SelectTrigger>
@@ -89,15 +135,15 @@ export default function AddNewTankForm() {
             </Select>
           </div>
 
-          {/* Initial Population */}
+          {/* Current Population */}
           <div className="space-y-2">
-            <Label htmlFor="population">Initial Population</Label>
+            <Label htmlFor="now_population">Current Population</Label>
             <Input
-              id="population"
-              name="population"
+              id="now_population"
+              name="now_population"
               type="number"
+              defaultValue={population}
               placeholder="Number of fish"
-              required
               className="border-none shadow-sm focus-visible:ring-2 focus-visible:ring-[#50A2FF] focus-visible:ring-offset-2"
             />
           </div>
@@ -109,6 +155,7 @@ export default function AddNewTankForm() {
               id="max_population"
               name="max_population"
               type="number"
+              defaultValue={maxPopulation}
               placeholder="e.g., 500"
               required
               className="border-none shadow-sm focus-visible:ring-2 focus-visible:ring-[#50A2FF] focus-visible:ring-offset-2"
@@ -120,9 +167,10 @@ export default function AddNewTankForm() {
             <Label htmlFor="tankVolumeLiters">Tank Volume (Liters)</Label>
             <Input
               id="tankVolumeLiters"
+              defaultValue={tankVolumeLiters}
               name="tankVolumeLiters"
               type="number"
-              placeholder="e.g., 2"
+              placeholder="e.g., 2000"
               required
               className="border-none shadow-sm focus-visible:ring-2 focus-visible:ring-[#50A2FF] focus-visible:ring-offset-2"
             />
@@ -134,6 +182,7 @@ export default function AddNewTankForm() {
               Recommended Feed Per Day (grams)
             </Label>
             <Input
+              defaultValue={dailyFeedLimit}
               id="recommendedFeedPerDay"
               name="recommendedFeedPerDay"
               type="number"
@@ -143,9 +192,10 @@ export default function AddNewTankForm() {
             />
           </div>
 
-          <DialogFooter className="flex gap-3 pt-2">
-            <CancelButton />
-            <SubmitButton />
+          <DialogFooter className="flex w-full gap-3 pt-2">
+            <DeleteButton handleDelete={handleDelete} isDeleting={isDeleting} />
+            <CancelButton setOpen={setOpen} isDeleting={isDeleting} />
+            <SubmitButton isDeleting={isDeleting} />
           </DialogFooter>
         </form>
       </DialogContent>
@@ -153,20 +203,20 @@ export default function AddNewTankForm() {
   );
 }
 
-const SubmitButton = function () {
+const SubmitButton = function ({ isDeleting }) {
   const { pending } = useFormStatus();
   return (
     <Button
       type="submit"
-      disabled={pending}
+      disabled={pending || isDeleting}
       className="cursor-pointer bg-[#0DA2E7] text-white hover:bg-[#0DA2E7]/90"
     >
-      Create Tank
+      {pending ? "Updating..." : "Update Tank"}
     </Button>
   );
 };
 
-const CancelButton = function () {
+const CancelButton = function ({ setOpen, isDeleting }) {
   const { pending } = useFormStatus();
 
   return (
@@ -175,9 +225,23 @@ const CancelButton = function () {
       variant="outline"
       onClick={() => setOpen(false)}
       className="cursor-pointer"
-      disabled={pending}
+      disabled={pending || isDeletingt}
     >
       Cancel
+    </Button>
+  );
+};
+
+const DeleteButton = function ({ handleDelete, isDeleting }) {
+  return (
+    <Button
+      type="button"
+      variant="destructive"
+      onClick={handleDelete}
+      className="mr-auto cursor-pointer hover:opacity-80 disabled:cursor-not-allowed"
+      disabled={isDeleting}
+    >
+      {isDeleting ? "Deleting..." : "Delete"}
     </Button>
   );
 };

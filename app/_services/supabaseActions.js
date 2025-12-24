@@ -14,6 +14,24 @@ export const getTankDetails = async function () {
   return tanksDetails;
 };
 
+export const updateTankDetails = async function (tank_id, details) {
+  const { error } = await supabase
+    .from("tanks")
+    .update([details])
+    .eq("id", tank_id)
+    .eq("shop_id", "4e7ab86b-37b2-40e8-a789-01f675d6df3b");
+  if (error) throw new Error("Couldnt update the Tank Details  ");
+};
+
+export const deleteTank = async function (tank_id) {
+  const { error } = await supabase
+    .from("tanks")
+    .delete()
+    .eq("id", tank_id)
+    .eq("shop_id", "4e7ab86b-37b2-40e8-a789-01f675d6df3b");
+  if (error) throw new Error("Couldnt delete the Tank");
+};
+
 export const getFeedingSchedule = async function () {
   const { data: feedingSchedule, error } = await supabase
     .from("feeding_schedules")
@@ -37,7 +55,7 @@ export const getUpcomingFeedingScheduleForToday = async function () {
 
   if (error) {
     console.error(error);
-    return [];
+    return;
   }
 
   return data;

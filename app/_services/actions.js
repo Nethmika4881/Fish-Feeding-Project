@@ -4,9 +4,11 @@ import { revalidatePath } from "next/cache";
 import {
   addANewSchedule,
   addANewTank,
+  deleteTank,
   getExistingTankNamesOfASpecificUser,
   updateInventoryDetails,
   updateProfileDetails,
+  updateTankDetails,
 } from "./supabaseActions";
 
 export const profileDetailsAction = async (formData) => {
@@ -48,13 +50,19 @@ export const addNewTankAction = async (formData) => {
       tank_name: formData.get("tankName"),
       fish_type: formData.get("fishType"),
       fish_count: Number(formData.get("population")),
-      max_population: Number(formData.get("capacity")),
+      max_population: Number(formData.get("max_population")),
       tank_volume_liters: Number(formData.get("tankVolumeLiters")),
       recommended_feed_per_day: Number(formData.get("recommendedFeedPerDay")),
     };
 
     if (tankNames.includes(details.tank_name)) {
       throw new Error("This tank name is already exist");
+    }
+
+    if (details.max_population < details.fish_count) {
+      throw new Error(
+        "Initial population must be less than the maximum fish count",
+      );
     }
     await addANewTank([details]);
 
@@ -67,6 +75,45 @@ export const addNewTankAction = async (formData) => {
   }
 };
 
+export const updateExistingTankAction = async (tank_id, formData) => {
+  try {
+    const details = {
+      tank_name: formData.get("tankName"),
+      fish_type: formData.get("fishType"),
+      fish_count: Number(formData.get("now_population")),
+      max_population: Number(formData.get("max_population")),
+      tank_volume_liters: Number(formData.get("tankVolumeLiters")),
+      recommended_feed_per_day: Number(formData.get("recommendedFeedPerDay")),
+    };
+
+    if (details.max_population < details.fish_count) {
+      throw new Error(
+        "Current population must be less than the maximum fish count",
+      );
+    }
+    await updateTankDetails(tank_id, details);
+
+    revalidatePath("/tanks");
+
+    return { success: true };
+  } catch (error) {
+    console.error(error);
+    return { error: error.message || "Failed to edit tank" };
+  }
+};
+
+export const deleteTankAction = async (tank_id) => {
+  try {
+    await deleteTank(tank_id);
+
+    revalidatePath("/tanks");
+
+    return { success: true };
+  } catch (error) {
+    console.error(error);
+    return { error: error.message || "Failed to delete tank" };
+  }
+};
 export const addNewFeedSchedule = async (formData) => {
   console.log(formData, "formdata");
 

@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Fish, Thermometer, Droplets } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import EditTankDetails from "./EditTankDetails";
 
 const MAX_TEMP = 30;
 const MIN_TEMP = 10;
@@ -42,7 +43,7 @@ function TankCard({ tank }) {
         </div>
 
         {/* Keep View Details button exactly at bottom */}
-        <ViewDetailsButton tankID={tankID} />
+        <ViewDetailsButton tank={tank} />
       </div>
     </div>
   );
@@ -161,17 +162,10 @@ function RecommendedFeedRow({ dailyFeedLimit }) {
   );
 }
 
-function ViewDetailsButton({ tankID }) {
-  const pathname = usePathname();
+function ViewDetailsButton({ tank }) {
   return (
     <div className="bg-stone-200 text-sm">
-      {/* <Link
-        href={`${pathname}/tankDetails/${tankID}`}
-        className="inline-flex h-12 w-full items-center justify-between px-4 py-2 text-[.8rem] font-semibold"
-      >
-        <span>View Details</span>
-        <span>&rarr;</span>
-      </Link> */}
+      <EditTankDetails tank={tank} />
     </div>
   );
 }
