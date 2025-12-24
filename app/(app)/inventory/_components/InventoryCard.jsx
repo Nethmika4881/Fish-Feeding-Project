@@ -4,9 +4,11 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Box } from "lucide-react";
 import React from "react";
+import EditInventoryDetails from "./EditInventoryDetails";
 
-function InventoryCard({ inventory }) {
+function InventoryCard({ inventoryDetails, inventory }) {
   const {
+    id: feedId,
     feed_name: feedName,
     feed_type: feedType,
     quantity_now_kg: quantityNowInKG,
@@ -14,17 +16,24 @@ function InventoryCard({ inventory }) {
     maxCapacity_kg: maxCapacityInKG,
   } = inventory;
   return (
-    <div className="min-h-50 w-full overflow-hidden rounded-xl bg-white px-5 py-3 shadow-sm">
-      <CardHeader
-        feedName={feedName}
-        maxCapacityInKG={maxCapacityInKG}
-        quantityNowInKG={quantityNowInKG}
-        lowStockThresholdKG={lowStockThresholdKG}
-      />
-      <RemainingAmount
-        maxCapacityInKG={maxCapacityInKG}
-        quantityNowInKG={quantityNowInKG}
-        lowStockThresholdKG={lowStockThresholdKG}
+    <div className="*: min-h-50 w-full overflow-hidden rounded-xl bg-white shadow-sm">
+      <div className="px-5 py-3">
+        <CardHeader
+          feedName={feedName}
+          maxCapacityInKG={maxCapacityInKG}
+          quantityNowInKG={quantityNowInKG}
+          lowStockThresholdKG={lowStockThresholdKG}
+        />
+        <RemainingAmount
+          maxCapacityInKG={maxCapacityInKG}
+          quantityNowInKG={quantityNowInKG}
+          lowStockThresholdKG={lowStockThresholdKG}
+        />
+      </div>
+      <ViewInventoryDetailsButton
+        feedId={feedId}
+        inventoryDetails={inventoryDetails}
+        inventory={inventory}
       />
     </div>
   );
@@ -120,5 +129,17 @@ function CardBadge({ quantityNowInKG, lowStockThresholdKG }) {
     >
       {status.charAt(0).toUpperCase() + status.slice(1)}
     </Badge>
+  );
+}
+
+function ViewInventoryDetailsButton({ inventory, feedId, inventoryDetails }) {
+  return (
+    <div className="bg-stone-200 text-sm">
+      <EditInventoryDetails
+        feedId={feedId}
+        inventoryDetails={inventoryDetails}
+        inventory={inventory}
+      />
+    </div>
   );
 }

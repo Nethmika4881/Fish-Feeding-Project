@@ -23,7 +23,7 @@ function TankCard({ tank }) {
   } = tank;
 
   return (
-    <div className="min-h- w-full overflow-hidden rounded-xl bg-white shadow-sm">
+    <div className="w-full overflow-hidden rounded-xl bg-white shadow-sm">
       <CardHeader
         name={name}
         fishType={fishType}

@@ -1,0 +1,8 @@
+{
+  "cron": [
+    {
+      "path": "/api/run-scheduled-feeds",
+      "schedule": "* * * * *"
+    }
+  ]
+}

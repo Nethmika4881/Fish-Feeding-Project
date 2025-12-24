@@ -1,11 +1,9 @@
 "use client";
 
 import {
-  addNewTankAction,
   deleteTankAction,
   updateExistingTankAction,
 } from "@/app/_services/actions";
-import { deleteTank } from "@/app/_services/supabaseActions";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -225,7 +223,7 @@ const CancelButton = function ({ setOpen, isDeleting }) {
       variant="outline"
       onClick={() => setOpen(false)}
       className="cursor-pointer"
-      disabled={pending || isDeletingt}
+      disabled={pending || isDeleting}
     >
       Cancel
     </Button>

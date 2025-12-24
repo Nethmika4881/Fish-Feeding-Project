@@ -2,11 +2,12 @@ import { AlertCircle, HandCoins } from "lucide-react";
 import { Suspense } from "react";
 import Form from "./_components/Form";
 import SelectTank from "./_components/SelectTank";
-import { getTankDetails } from "../_services/supabaseActions";
+import { getFoodNames, getTankDetails } from "../_services/supabaseActions";
 import Spinner from "../_components/Spinner";
 
 async function page() {
   const data = await getTankDetails();
+  const feedNames = await getFoodNames();
   return (
     <>
       <div className="mx-auto mt-10 flex w-full flex-col gap-6 rounded-xl border border-[#CFECFA] bg-white px-3 py-8 shadow-sm md:px-8 lg:w-200 lg:px-12">
@@ -17,9 +18,7 @@ async function page() {
           <span>Manual Feeds</span>
         </h1>
         <Suspense fallback={<Spinner />}>
-          <Form>
-            <SelectTank tanks={data} id="tanks" />
-          </Form>
+          <Form feedNames={feedNames}></Form>
         </Suspense>
 
         <div className="flex flex-col gap-2 rounded-xl bg-[#FFFBEB] px-3 py-4 text-sm">

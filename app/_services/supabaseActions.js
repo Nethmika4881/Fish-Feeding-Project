@@ -163,3 +163,23 @@ export const getExistingTankNamesOfASpecificUser = async function (id) {
 
   return data;
 };
+
+export const getFoodNames = async function () {
+  const { data, error } = await supabase
+    .from("feed_inventory")
+    .select("feed_name");
+
+  if (error) throw new Error("Couldnt get feed names");
+
+  return data;
+};
+
+export const deleteSchedule = async function (id) {
+  console.log(id, "id id id di");
+  const { error } = await supabase
+    .from("feeding_schedules")
+    .delete()
+    .eq("id", id);
+
+  if (error) throw new Error("Couldnt delete schedule");
+};

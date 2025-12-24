@@ -1,49 +1,151 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { getMQTTService } from "./mqtt/mqttClient";
 import { supabase } from "./supabase";
+import {
+  getFoodNames,
+  getInventoryDetails,
+} from "../_services/supabaseActions";
 
 export const manualFeedingAction = async (formData) => {
-  const tankID = Number(formData.get("tanks"));
-  const amount = Number(formData.get("amount"));
-
-  if (!tankID || !amount) return;
-  const timeStamp = new Date().toISOString();
-
-  const details = { tankID, amount, timeStamp };
-  const topic = `user1/${tankID}/manual_feed`;
-
-  const { data, error } = await supabase
-    .from("manual_feedings")
-    .insert([{ ...details, status: "pending" }])
-    .select()
-    .single();
-
-  if (error) {
-    throw new Error("Couldn't update database");
-  }
-
-  console.log(data, "received data");
-
   try {
-    const mqtt = getMQTTService();
-    await mqtt.connect(); // ✅ WAIT for connection
-    await mqtt.publish(topic, JSON.stringify(details)); // ✅ WAIT for publish
+    // Extract and validate form data
+    const tankID = formData.get("tank");
+    const food_name = formData.get("foodType");
+    const feed_amount = Number(formData.get("amount"));
 
-    await supabase
-      .from("manual_feedings")
-      .update({ status: "done", timeStamp: new Date().toISOString() })
-      .eq("id", data.id);
-  } catch (e) {
-    console.error("MQTT publish failed:", e);
+    if (!tankID || !food_name) {
+      return { error: "Please select both tank and food type." };
+    }
+    if (!feed_amount || feed_amount <= 0 || isNaN(feed_amount)) {
+      return { error: "Please enter a valid amount greater than 0." };
+    }
 
-    await supabase
-      .from("manual_feedings")
-      .update({ status: "failed", timeStamp: new Date().toISOString() })
-      .eq("id", data.id);
+    const timeStamp = new Date().toISOString();
+    const shopId = "4e7ab86b-37b2-40e8-a789-01f675d6df3b"; // can be moved to ENV
 
-    throw new Error("Failed to send feeding command");
+    // Step 1: Insert manual feeding request
+    const { data: feedingRequest, error: insertError } = await supabase
+      .from("manual_feeding_requests")
+      .insert({
+        shop_id: shopId,
+        tank_id: tankID,
+        feed_name: food_name,
+        feed_amount,
+        status: "pending",
+        requested_at: timeStamp,
+      })
+      .select()
+      .single();
+
+    if (insertError || !feedingRequest) {
+      console.error("Database insert error:", insertError);
+      return { error: "Failed to create feeding request." };
+    }
+
+    console.log("Feeding request created:", feedingRequest.id);
+
+    // Step 2: Subtract feed inventory using RPC
+    const res = await getInventoryDetails();
+    const inventoryItem = res.find((x) => x.feed_name === food_name);
+    console.log(inventoryItem, "item");
+    if (!inventoryItem) {
+      return { error: "Feed not found in inventory." };
+    }
+
+    const inventoryID = inventoryItem.id;
+
+    console.log(inventoryID, shopId, feed_amount, "whoooooooooooooo");
+    const { data: inventoryUpdated, error: inventoryError } =
+      await supabase.rpc("subtract_feed_inventory", {
+        p_inventory_id: inventoryID,
+        p_shop_id: shopId,
+        p_amount_kg: feed_amount,
+      });
+
+    console.log(inventoryUpdated, inventoryError, feed_amount, "do or die");
+    if (inventoryError) {
+      console.error("Inventory update failed:", inventoryError);
+      return { error: "Failed to update feed inventory." };
+    }
+
+    if (!inventoryUpdated) {
+      return { error: "Insufficient feed inventory." };
+    }
+
+    // Step 3: Insert feed log
+    const { data: f, error: logError } = await supabase
+      .from("feed_logs")
+      .insert({
+        shop_id: shopId,
+        tankId: tankID,
+        type: "manual",
+        manual_feed_id: feedingRequest.id,
+      })
+      .select();
+
+    console.log(f, "final data ");
+    if (logError) {
+      console.error("Feed log insert error:", logError);
+    }
+
+    // Step 4: Publish to MQTT
+    const topic = `user1/${tankID}/manual_feed`;
+    const payload = {
+      tank_id: tankID,
+      feed_name: food_name,
+      feed_amount,
+      requested_at: timeStamp,
+      request_id: feedingRequest.id,
+    };
+
+    let mqttSuccess = false;
+
+    try {
+      const mqtt = getMQTTService();
+      await mqtt.connect();
+      await mqtt.publish(topic, JSON.stringify(payload));
+      console.log("MQTT published successfully to:", topic);
+      mqttSuccess = true;
+    } catch (err) {
+      console.error("MQTT publish failed:", err);
+    }
+
+    // Step 5: Update feeding request status
+    const finalStatus = mqttSuccess ? "completed" : "failed";
+    const { error: updateError } = await supabase
+      .from("manual_feeding_requests")
+      .update({ status: finalStatus, requested_at: new Date().toISOString() })
+      .eq("id", feedingRequest.id);
+
+    if (updateError) {
+      console.error("Status update error:", updateError);
+    }
+
+    // Step 6: Revalidate paths
+    revalidatePath("/manual-feeding");
+    revalidatePath("/feed-logs");
+    revalidatePath("/dashboard");
+
+    return mqttSuccess
+      ? {
+          success: true,
+          message: "Feeding command sent successfully.",
+          requestId: feedingRequest.id,
+        }
+      : {
+          error:
+            "Failed to send command to device. The request has been logged.",
+          requestId: feedingRequest.id,
+          partialSuccess: true,
+        };
+  } catch (error) {
+    console.error("Unexpected error in manualFeedingAction:", error);
+    return {
+      error: "An unexpected error occurred. Please try again.",
+      details:
+        process.env.NODE_ENV === "development" ? error.message : undefined,
+    };
   }
-
-  return { success: true };
 };

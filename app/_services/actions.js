@@ -4,12 +4,14 @@ import { revalidatePath } from "next/cache";
 import {
   addANewSchedule,
   addANewTank,
+  deleteSchedule,
   deleteTank,
   getExistingTankNamesOfASpecificUser,
   updateInventoryDetails,
   updateProfileDetails,
   updateTankDetails,
 } from "./supabaseActions";
+import { supabase } from "../_lib/supabase";
 
 export const profileDetailsAction = async (formData) => {
   const phone = formData.get("phonenumber")?.trim();
@@ -121,7 +123,7 @@ export const addNewFeedSchedule = async (formData) => {
     const details = {
       shop_id: "4e7ab86b-37b2-40e8-a789-01f675d6df3b",
       tank_id: formData.get("tank"),
-      feed_type: formData.get("feed-type"),
+      feed_name: formData.get("feed-type"),
       feed_time: formData.get("time"),
       feed_amount: Number(formData.get("amount")),
       today_status: "not-info",
@@ -153,7 +155,7 @@ export const updateFeedStocks = async function (formData) {
       cost_per_kg: Number(formData.get("cost")),
       low_stock_threshold_kg: Number(formData.get("min_stock")),
     };
-    const result = await updateInventoryDetails(id, details);
+    await updateInventoryDetails(id, details);
     revalidatePath("/inventory");
     revalidatePath("/analytics");
 
@@ -161,5 +163,45 @@ export const updateFeedStocks = async function (formData) {
   } catch (error) {
     console.error("Full error:", error);
     return { error: error.message || "Failed to update inventory" };
+  }
+};
+
+export const deleteScheduleAction = async function (id) {
+  console.log(id, " my id ");
+  try {
+    await deleteSchedule(id);
+    revalidatePath("/feeding-schedule");
+
+    return { success: true };
+  } catch (error) {
+    console.error("Full error:", error);
+    return { error: error.message || "Failed to delete feeding schedule" };
+  }
+};
+
+export const updateScheduleAction = async function (id, formData) {
+  try {
+    const tank = formData.get("tank");
+    const time = formData.get("time");
+    const feedType = formData.get("feed-type");
+    const amount = formData.get("amount");
+
+    const { error } = await supabase
+      .from("feeding_schedules")
+      .update({
+        tank_id: tank,
+        feed_time: time,
+        feed_name: feedType,
+        feed_amount: amount,
+      })
+      .eq("id", id);
+
+    if (error) throw new Error("Couldn't update schedule");
+
+    revalidatePath("/feeding-schedule");
+    return { success: true };
+  } catch (error) {
+    console.error("Full error:", error);
+    return { error: error.message || "Failed to update feeding schedule" };
   }
 };
