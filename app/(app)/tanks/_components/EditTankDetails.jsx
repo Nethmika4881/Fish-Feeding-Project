@@ -65,7 +65,9 @@ export default function EditTankDetails({ tank }) {
 
     setIsDeleting(true);
     try {
+      console.log(tank_id, "ii");
       const res = await deleteTankAction(tank_id);
+
       if (res?.error) {
         toast.error(res.error);
         return;

@@ -23,9 +23,8 @@ export default function NotFound() {
             Page Not Found
           </h2>
           <p className="text-lg text-stone-600">
-            Oops! The page you&apos;re looking for seems to have swum away. It
-            might have been removed, had its name changed, or is temporarily
-            unavailable.
+            Oops! The page you&apos;re looking for seems to have swum away.Check
+            your internet connection
           </p>
         </div>
 

@@ -10,14 +10,27 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const data = [
-  { tank: "Tank A", value: 400, color: "#3b82f6" }, // blue
-  { tank: "Tank B", value: 100, color: "#ef4444" }, // red
-  { tank: "Tank C", value: 250, color: "#22c55e" }, // green
-  { tank: "Tank D", value: 150, color: "#f59e0b" }, // orange
+const COLORS = [
+  "#ef4444", // red
+  "#3b82f6", // blue
+  "#22c55e", // green
+  "#f59e0b", // orange
+  "#8b5cf6", // purple
+  "#ec4899", // pink
+  "#14b8a6", // teal
+  "#f97316", // deep orange
+  "#06b6d4", // cyan
+  "#84cc16", // lime
 ];
-
-export default function FeedDistributionAmongTanks() {
+export default function FeedDistributionAmongTanks({ details }) {
+  console.log(details, "Dedede");
+  const data = details.map((data, index) => {
+    return {
+      tank: data.tank_name,
+      value: data.feed_amount,
+      color: COLORS[index % COLORS.length],
+    };
+  });
   return (
     <div className="mt-5 w-full rounded-xl bg-white p-2 shadow-sm">
       <Heading />
@@ -33,7 +46,7 @@ export default function FeedDistributionAmongTanks() {
               cx="50%"
               cy="50%"
               paddingAngle={2}
-              label={({ name, value }) => `${name}: ${value}g`} // show tank name + value
+              label={({ name, value }) => `${name}: ${value}kg`} // show tank name + value
             >
               {data.map((entry) => (
                 <Cell
@@ -50,7 +63,7 @@ export default function FeedDistributionAmongTanks() {
               iconSize={15}
               iconType="circle"
             />
-            <Tooltip formatter={(value) => `${value}g`} />
+            <Tooltip formatter={(value) => `${value}kg`} />
           </PieChart>
         </ResponsiveContainer>
       </div>
@@ -66,7 +79,7 @@ export default function FeedDistributionAmongTanks() {
               cx="50%"
               cy="50%"
               paddingAngle={2}
-              label={({ name, value }) => `${name}: ${value}g`} // show tank name + value
+              label={({ name, value }) => `${name}: ${value}kg`} // show tank name + value
             >
               {data.map((entry) => (
                 <Cell
@@ -83,7 +96,7 @@ export default function FeedDistributionAmongTanks() {
               iconSize={15}
               iconType="circle"
             />
-            <Tooltip formatter={(value) => `${value}g`} />
+            <Tooltip formatter={(value) => `${value}kg`} />
           </PieChart>
         </ResponsiveContainer>
       </div>

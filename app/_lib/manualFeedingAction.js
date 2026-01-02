@@ -1,12 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getInventoryDetails } from "../_services/supabaseActions";
 import { getMQTTService } from "./mqtt/mqttClient";
 import { supabase } from "./supabase";
-import {
-  getFoodNames,
-  getInventoryDetails,
-} from "../_services/supabaseActions";
 
 export const manualFeedingAction = async (formData) => {
   try {
@@ -34,7 +31,7 @@ export const manualFeedingAction = async (formData) => {
         feed_name: food_name,
         feed_amount,
         status: "pending",
-        requested_at: timeStamp,
+        updated_at: timeStamp,
       })
       .select()
       .single();
@@ -74,30 +71,13 @@ export const manualFeedingAction = async (formData) => {
       return { error: "Insufficient feed inventory." };
     }
 
-    // Step 3: Insert feed log
-    const { data: f, error: logError } = await supabase
-      .from("feed_logs")
-      .insert({
-        shop_id: shopId,
-        tankId: tankID,
-        type: "manual",
-        manual_feed_id: feedingRequest.id,
-      })
-      .select();
-
-    console.log(f, "final data ");
-    if (logError) {
-      console.error("Feed log insert error:", logError);
-    }
-
-    // Step 4: Publish to MQTT
+    // Step 4: Setup MQTT acknowledgment subscription and publish
     const topic = `user1/${tankID}/manual_feed`;
+    const ackTopic = `user1/${tankID}/manual_feed_ack`;
     const payload = {
       tank_id: tankID,
-      feed_name: food_name,
       feed_amount,
-      requested_at: timeStamp,
-      request_id: feedingRequest.id,
+      requestID: feedingRequest.id,
     };
 
     let mqttSuccess = false;
@@ -105,18 +85,76 @@ export const manualFeedingAction = async (formData) => {
     try {
       const mqtt = getMQTTService();
       await mqtt.connect();
+
+      mqtt.onMessage(ackTopic, async (message) => {
+        try {
+          const ackData = JSON.parse(message);
+          console.log("Received ACK:", ackData);
+
+          if (
+            ackData.status === "success" &&
+            ackData.requestID === feedingRequest.id
+          ) {
+            // Step 3: Insert feed log
+            const { data: f, error: logError } = await supabase
+              .from("feed_logs")
+              .insert({
+                shop_id: shopId,
+                tankId: tankID,
+                type: "manual",
+                manual_feed_id: feedingRequest.id,
+              })
+              .select();
+
+            console.log(f, "final data ");
+            if (logError) {
+              console.error("Feed log insert error:", logError);
+            }
+            const { error: completeError } = await supabase
+              .from("manual_feeding_requests")
+              .update({
+                status: "completed",
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", feedingRequest.id);
+
+            if (completeError) {
+              console.error(
+                "Failed to update status to completed:",
+                completeError,
+              );
+            } else {
+              console.log(
+                "Feeding request marked as completed:",
+                feedingRequest.id,
+              );
+              revalidatePath("/manual-feeding");
+              revalidatePath("/feed-logs");
+              revalidatePath("/dashboard");
+            }
+          }
+        } catch (err) {
+          console.error("Error processing ACK message:", err);
+        }
+      });
+
+      // Subscribe to acknowledgment topic
+      mqtt.subscribe(ackTopic);
+
+      // Publish feeding command
       await mqtt.publish(topic, JSON.stringify(payload));
+      console.log(JSON.stringify(payload), "payload");
       console.log("MQTT published successfully to:", topic);
       mqttSuccess = true;
     } catch (err) {
       console.error("MQTT publish failed:", err);
     }
 
-    // Step 5: Update feeding request status
-    const finalStatus = mqttSuccess ? "completed" : "failed";
+    // Step 5: Update feeding request status to "sent"
+    const finalStatus = mqttSuccess ? "sent" : "failed";
     const { error: updateError } = await supabase
       .from("manual_feeding_requests")
-      .update({ status: finalStatus, requested_at: new Date().toISOString() })
+      .update({ status: finalStatus, updated_at: new Date().toISOString() })
       .eq("id", feedingRequest.id);
 
     if (updateError) {
@@ -131,7 +169,8 @@ export const manualFeedingAction = async (formData) => {
     return mqttSuccess
       ? {
           success: true,
-          message: "Feeding command sent successfully.",
+          message:
+            "Feeding command sent successfully. Waiting for device acknowledgment.",
           requestId: feedingRequest.id,
         }
       : {

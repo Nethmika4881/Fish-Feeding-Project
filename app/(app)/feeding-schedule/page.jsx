@@ -5,6 +5,7 @@ import FishFeedScheduleClient from "./_components/Table";
 
 async function page() {
   const data = await getFeedingSchedule();
+  console.log(data);
   const formattedLogs = data.map((log) => ({
     id: log?.id,
     time: formatTimeHHMM(log.feed_time),

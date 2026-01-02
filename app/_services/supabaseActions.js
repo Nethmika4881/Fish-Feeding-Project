@@ -24,14 +24,43 @@ export const updateTankDetails = async function (tank_id, details) {
 };
 
 export const deleteTank = async function (tank_id) {
+  // 1. Delete devices in this tank first
+  const { error: error1 } = await supabase
+    .from("devices")
+    .delete()
+    .eq("location", tank_id)
+    .eq("shop_id", "4e7ab86b-37b2-40e8-a789-01f675d6df3b");
+
+  if (error1) {
+    console.error(error1, "Failed to delete devices");
+    throw new Error("Couldn't delete the devices in the tank");
+  }
+
+  // 1. Delete devices in this tank first
+  const { error: error2 } = await supabase
+    .from("feed_logs")
+    .delete()
+    .eq("tankId", tank_id)
+    .eq("shop_id", "4e7ab86b-37b2-40e8-a789-01f675d6df3b");
+
+  if (error2) {
+    console.error(error2, "Failed to delete devices");
+    throw new Error("Couldn't delete the feed logs of the tank");
+  }
+  // 2. Now delete the tank
   const { error } = await supabase
     .from("tanks")
     .delete()
     .eq("id", tank_id)
     .eq("shop_id", "4e7ab86b-37b2-40e8-a789-01f675d6df3b");
-  if (error) throw new Error("Couldnt delete the Tank");
-};
 
+  if (error) {
+    console.error(error, "Failed to delete tank");
+    throw new Error("Couldn't delete the tank");
+  }
+
+  console.log("Tank and its devices deleted successfully");
+};
 export const getFeedingSchedule = async function () {
   const { data: feedingSchedule, error } = await supabase
     .from("feeding_schedules")
@@ -64,8 +93,6 @@ export const getInventoryDetails = async function () {
   const { data: inventoryDetails, error } = await supabase
     .from("feed_inventory")
     .select("*");
-
-  console.log(inventoryDetails, "inventoryDetails");
 
   if (error)
     throw new Error("Couldnt get the details about Inventory Details  ");
@@ -183,3 +210,113 @@ export const deleteSchedule = async function (id) {
 
   if (error) throw new Error("Couldnt delete schedule");
 };
+
+//dashboard boxes
+
+export const getNumOfTanks = async function () {
+  const { count, error } = await supabase
+    .from("tanks")
+    .select("*", { count: "exact", head: true });
+  if (error) throw new Error("Couldnt get num of tanks");
+
+  return count;
+};
+
+export const get_tank_amountoffeedused_numoftimesfeeded_lastweek =
+  async function () {
+    // const { data, error } = await supabase
+    //   .from("feed_logs")
+    //   .select(
+    //     `
+    //     feeding_schedules (
+    //       feed_amount,
+    //       tanks ( tank_name )
+    //     ),
+    //     manual_feeding_requests (
+    //       feed_amount,
+    //       tanks ( tank_name )
+    //     )
+    //   `,
+    //   )
+    //   .eq("shop_id", "4e7ab86b-37b2-40e8-a789-01f675d6df3b");
+
+    // console.log(data);
+    // if (error) throw new Error("Couldnt get feed amount details");
+
+    // const amounts = data.reduce((acc, log) => {
+    //   console.log(log, "log");
+    //   const tankName =
+    //     log?.manual_feeding_requests.tanks.tank_name ||
+    //     log?.feeding_schedules.tanks.tank_name;
+
+    //   if (!acc[tankName]) {
+    //     acc[tankName] = {
+    //       tankName,
+    //       feed_amount: 0,
+
+    //       logCount: 0,
+    //     };
+    //   }
+
+    //   acc[tankName].feed_amount +=
+    //     log?.manual_feeding_requests.feed_amount ||
+    //     log?.feeding_schedules.feed_amount;
+    //   acc[tankName].logCount += 1;
+    //   // if (data?.manual_feeding_requests) {
+    //   //   return data.manual_feeding_  requests.feed_amount;
+    //   // }
+    //   // if (data?.feeding_schedules) {
+    //   //   return data.feeding_schedules.feed_amount;
+    //   // }
+
+    //   return acc;
+    // }, {});
+    // // const feededAmount = amounts.reduce((acc, cur) => acc + cur, 0);
+    // return amounts;
+    // // return feededAmount;
+
+    const { data, error } = await supabase.rpc(
+      "get_tank_amountoffeedused_numoftimesfeeded",
+      {
+        p_shop_id: "4e7ab86b-37b2-40e8-a789-01f675d6df3b",
+      },
+    );
+    if (error) throw new Error("could get analysis for pie chart");
+    return data;
+  };
+
+export const get_week_feed_amounts_daily = async function () {
+  const { data, error } = await supabase.rpc("get_week_feed_amounts_daily", {
+    p_shop_id: "4e7ab86b-37b2-40e8-a789-01f675d6df3b",
+  });
+
+  if (error) throw new Error("could get analysis for bar chart");
+
+  return data;
+};
+export const numOfAlerts = async function name() {
+  const { count, error } = await supabase
+    .from("alerts")
+    .select("*", { count: "exact", head: true });
+  if (error) throw new Error("Couldnt get num of alerts");
+
+  return count;
+};
+
+//authentication
+export async function getCurrentUser() {
+  const { data: session } = await supabase.auth.getSession();
+
+  if (!session.session) return null;
+  console.log(session, "session");
+  const { data, error } = await supabase.auth.getUser();
+
+  if (error) throw new Error(error.message);
+  console.log(data, "user");
+  return data;
+}
+
+export async function logout() {
+  const { error } = await supabase.auth.signOut();
+  if (error) throw new Error(error.message);
+}

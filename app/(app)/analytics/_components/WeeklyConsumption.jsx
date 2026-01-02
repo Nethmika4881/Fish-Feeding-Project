@@ -20,7 +20,26 @@ const data = [
   { day: "Sun", feedUsed: 80 },
 ];
 
-export default function WeeklyConsumption() {
+export default function WeeklyConsumption({ detailsWeekly }) {
+  const weekTemplate = [
+    { day: "Mon", feedUsed: 0 },
+    { day: "Tue", feedUsed: 0 },
+    { day: "Wed", feedUsed: 0 },
+    { day: "Thu", feedUsed: 0 },
+    { day: "Fri", feedUsed: 0 },
+    { day: "Sat", feedUsed: 0 },
+    { day: "Sun", feedUsed: 0 },
+  ];
+
+  const data = weekTemplate.map((dayTemplate) => {
+    const match = detailsWeekly.find(
+      (d) => d.day_name.trim() === dayTemplate.day,
+    );
+    return {
+      day: dayTemplate.day,
+      feedUsed: match ? parseFloat(match.total_feed_amount) : 0,
+    };
+  });
   return (
     <div className="mt-5 w-full rounded-xl bg-white p-4 shadow-sm">
       <Heading />

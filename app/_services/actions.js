@@ -113,6 +113,7 @@ export const deleteTankAction = async (tank_id) => {
     return { success: true };
   } catch (error) {
     console.error(error);
+    console.log(error);
     return { error: error.message || "Failed to delete tank" };
   }
 };

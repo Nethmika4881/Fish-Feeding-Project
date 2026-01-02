@@ -1,7 +1,7 @@
 {
-  "cron": [
+  "crons": [
     {
-      "path": "/api/run-scheduled-feeds",
+      "path": "/api/cron/check-feeds",
       "schedule": "* * * * *"
     }
   ]

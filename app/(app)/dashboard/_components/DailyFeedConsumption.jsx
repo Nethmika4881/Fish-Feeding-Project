@@ -1,4 +1,6 @@
 "use client";
+import { getMQTTService } from "@/app/_lib/mqtt/mqttClient";
+import { useEffect } from "react";
 import {
   Area,
   AreaChart,
@@ -30,6 +32,15 @@ const colors = isDarkMode
       background: "#fff",
     };
 function DailyFeedConsumption() {
+  // useEffect(() => {
+  //   const mqtt = getMQTTService();
+  //   mqtt
+  //     .connect()
+  //     .then(() => console.log("MQTT connected from client!"))
+  //     .catch(console.error);
+
+  //   return () => mqtt.disconnect(); // optional cleanup
+  // }, []);
   return (
     <div className="col-span-2 rounded-xl bg-white px-4 py-4 text-[.7rem] shadow-sm lg:col-span-1">
       <Heading />
