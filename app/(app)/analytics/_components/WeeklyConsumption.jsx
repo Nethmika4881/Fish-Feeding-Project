@@ -10,16 +10,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const data = [
-  { day: "Mon", feedUsed: 120 },
-  { day: "Tue", feedUsed: 90 },
-  { day: "Wed", feedUsed: 60 },
-  { day: "Thu", feedUsed: 150 },
-  { day: "Fri", feedUsed: 100 },
-  { day: "Sat", feedUsed: 130 },
-  { day: "Sun", feedUsed: 80 },
-];
-
 export default function WeeklyConsumption({ detailsWeekly }) {
   const weekTemplate = [
     { day: "Mon", feedUsed: 0 },

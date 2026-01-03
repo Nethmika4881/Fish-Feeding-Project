@@ -1,5 +1,5 @@
 import {
-  get_tank_amountoffeedused_numoftimesfeeded_lastweek,
+  get_week_feed_amounts_daily,
   getAlerts,
   getCurrentUser,
   getNumOfTanks,
@@ -16,9 +16,7 @@ async function page() {
   const session = await getCurrentUser();
   const numOfTanks = await getNumOfTanks();
   const getNumOfAlerts = await numOfAlerts();
-  const amountFeeded =
-    await get_tank_amountoffeedused_numoftimesfeeded_lastweek();
-  console.log(amountFeeded, "ffeded");
+  const detailsWeekly = await get_week_feed_amounts_daily();
   const alerts = await getAlerts();
   const now = new Date();
   const pastAlerts = alerts.filter(
@@ -32,7 +30,7 @@ async function page() {
         amountFeeded={1}
       />
       <div className="my-5 grid grid-cols-1 gap-10 rounded-xl lg:grid-cols-[3fr_2fr]">
-        <DailyFeedConsumption />
+        <DailyFeedConsumption detailsWeekly={detailsWeekly} />
         <UpcomingFeeds upcomingFeeds={upcomingFeeds} />
         <WarningList pastAlerts={pastAlerts} />
       </div>

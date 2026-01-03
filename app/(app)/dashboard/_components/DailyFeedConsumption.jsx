@@ -1,6 +1,4 @@
 "use client";
-import { getMQTTService } from "@/app/_lib/mqtt/mqttClient";
-import { useEffect } from "react";
 import {
   Area,
   AreaChart,
@@ -9,43 +7,39 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-const fakeData = [
-  { day: "Mon", feedGrams: 1200 },
-  { day: "Tues", feedGrams: 1350 },
-  { day: "Wednes", feedGrams: 1100 },
-  { day: "Thurs", feedGrams: 1500 },
-  { day: "Fri", feedGrams: 1600 },
-  { day: "Satur", feedGrams: 1800 },
-  { day: "Sun", feedGrams: 1400 },
-];
 
-const isDarkMode = false;
-const colors = isDarkMode
-  ? {
-      feedGrams: { stroke: "#4f46e5", fill: "#4f46e5" },
-      text: "#e5e7eb",
-      background: "#18212f",
-    }
-  : {
-      feedGrams: { stroke: "#0DA2E7", fill: "#D9F1FC" },
-      text: "#888888",
-      background: "#fff",
+const colors = {
+  feedGrams: { stroke: "#0DA2E7", fill: "#D9F1FC" },
+  text: "#888888",
+  background: "#fff",
+};
+
+function DailyFeedConsumption({ detailsWeekly = [] }) {
+  const weekTemplate = [
+    { day: "Mon", feedUsed: 0 },
+    { day: "Tue", feedUsed: 0 },
+    { day: "Wed", feedUsed: 0 },
+    { day: "Thu", feedUsed: 0 },
+    { day: "Fri", feedUsed: 0 },
+    { day: "Sat", feedUsed: 0 },
+    { day: "Sun", feedUsed: 0 },
+  ];
+
+  const data = weekTemplate.map((dayTemplate) => {
+    const match = detailsWeekly.find(
+      (d) => d.day_name?.trim() === dayTemplate.day,
+    );
+    return {
+      day: dayTemplate.day,
+      feedUsed: match ? parseFloat(match.total_feed_amount) || 0 : 0,
     };
-function DailyFeedConsumption() {
-  // useEffect(() => {
-  //   const mqtt = getMQTTService();
-  //   mqtt
-  //     .connect()
-  //     .then(() => console.log("MQTT connected from client!"))
-  //     .catch(console.error);
+  });
 
-  //   return () => mqtt.disconnect(); // optional cleanup
-  // }, []);
   return (
     <div className="col-span-2 rounded-xl bg-white px-4 py-4 text-[.7rem] shadow-sm lg:col-span-1">
       <Heading />
       <ResponsiveContainer width="100%" className="my-10" height={300}>
-        <AreaChart data={fakeData}>
+        <AreaChart data={data}>
           <defs>
             <linearGradient id="feedGradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#0DA2E7" stopOpacity={0.6} />
@@ -62,9 +56,10 @@ function DailyFeedConsumption() {
             tick={{ fill: colors.text }}
             tickLine={{ stroke: colors.text }}
           />
-          {/* <CartesianGrid skeDasharray="3" /> */}
+          {/* Uncomment if you want grid lines */}
+          {/* <CartesianGrid strokeDasharray="3 3" /> */}
           <Area
-            dataKey="feedGrams"
+            dataKey="feedUsed"
             type="monotone"
             stroke={colors.feedGrams.stroke}
             fill="url(#feedGradient)"
@@ -83,10 +78,11 @@ function Heading() {
   return (
     <div className="mt-2 mb-4">
       <h1 className="text-[1rem] font-semibold">Daily Feed Consumption</h1>
-      <h4 className="text-sm opacity-60 text-shadow-stone-500">
+      <h4 className="text-sm text-stone-500 opacity-60">
         Total feed distributed across all tanks (grams)
       </h4>
     </div>
   );
 }
+
 export default DailyFeedConsumption;
