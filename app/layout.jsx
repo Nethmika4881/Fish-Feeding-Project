@@ -8,7 +8,6 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata = {
   title: "Fish Farm Management",
   description: "Manage your fish farm operations",
-  themeColor: "#f4f4",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,

@@ -24,11 +24,52 @@ function connect() {
 
   connectionPromise = new Promise((resolve, reject) => {
     const brokerUrl = process.env.MQTT_BROKER_URL;
+    const username = process.env.MQTT_USERNAME;
+    const password = process.env.MQTT_PASSWORD;
+
+    // Debug: Log what we're getting
+    console.log("🔍 Debug - Environment Variables:");
+    console.log(
+      "  NEXT_PUBLIC_MQTT_BROKER_URL:",
+      process.env.NEXT_PUBLIC_MQTT_BROKER_URL,
+    );
+    console.log("  MQTT_BROKER_URL:", process.env.MQTT_BROKER_URL);
+    console.log("  Final brokerUrl:", brokerUrl);
+
+    // Validate environment variables
+    if (!brokerUrl) {
+      const error = new Error(
+        "❌ MQTT_BROKER_URL is not defined in environment variables. Please check your .env.local file",
+      );
+      console.error(error.message);
+      isConnecting = false;
+      connectionPromise = null;
+      reject(error);
+      return;
+    }
+
+    // Validate URL format
+    if (
+      !brokerUrl.startsWith("mqtt://") &&
+      !brokerUrl.startsWith("mqtts://") &&
+      !brokerUrl.startsWith("ws://") &&
+      !brokerUrl.startsWith("wss://")
+    ) {
+      const error = new Error(
+        `❌ Invalid MQTT URL format: ${brokerUrl}. Must start with mqtt://, mqtts://, ws://, or wss://`,
+      );
+      console.error(error.message);
+      isConnecting = false;
+      connectionPromise = null;
+      reject(error);
+      return;
+    }
+
     const options = {
-      clientId: `nextjs_server_mqtt_${Date.now()}`,
-      username: process.env.MQTT_USERNAME,
-      password: process.env.MQTT_PASSWORD,
-      clean: false,
+      clientId: `nextjs_webapp_client`,
+      username: username,
+      password: password,
+      clean: true, // Changed to true to prevent session buildup
       keepalive: 60,
       reconnectPeriod: 5000,
       connectTimeout: 30 * 1000,
@@ -41,13 +82,18 @@ function connect() {
       },
     };
 
-    console.log("🔌 Connecting to MQTT broker...");
+    console.log("🔌 Connecting to MQTT broker:", brokerUrl);
+    console.log("👤 Username:", username ? "✓ Set" : "✗ Not set");
+    console.log("🔑 Password:", password ? "✓ Set" : "✗ Not set");
+
     client = mqtt.connect(brokerUrl, options);
 
     const timeout = setTimeout(() => {
       isConnecting = false;
       connectionPromise = null;
-      reject(new Error("MQTT connection timeout"));
+      const error = new Error("MQTT connection timeout after 30 seconds");
+      console.error("❌", error.message);
+      reject(error);
     }, 30000);
 
     client.on("connect", () => {
@@ -72,7 +118,23 @@ function connect() {
 
     client.on("error", (err) => {
       clearTimeout(timeout);
-      console.error("❌ MQTT error:", err);
+      console.error("❌ MQTT error:", err.message || err);
+
+      // More specific error messages
+      if (err.code === "ENOTFOUND") {
+        console.error(
+          "💡 DNS Error: Cannot resolve hostname. Check your MQTT_BROKER_URL",
+        );
+      } else if (err.code === "ECONNREFUSED") {
+        console.error(
+          "💡 Connection refused: Check if the broker is running and port is correct",
+        );
+      } else if (err.message?.includes("Not authorized")) {
+        console.error(
+          "💡 Authentication failed: Check your MQTT_USERNAME and MQTT_PASSWORD",
+        );
+      }
+
       isConnected = false;
       isConnecting = false;
       connectionPromise = null;
