@@ -5,7 +5,7 @@ import { Timer } from "lucide-react";
 function UpcomingFeedsCard({ feed, isLast }) {
   const {
     feed_amount: feedAmount,
-    feed_type: feedType,
+    feed_name: feedType,
     feed_time: feedTime,
     tanks: { tank_name: tankName },
   } = feed;
