@@ -21,7 +21,10 @@ export async function POST(request) {
     );
 
     console.log("[MQTT] ✅ Feed command sent successfully");
-
+    revalidatePath("/dashboard");
+    revalidatePath("/feeding-schedule");
+    revalidatePath("/analytics");
+    revalidatePath("/inventory");
     return NextResponse.json({
       success: true,
       tankId,
