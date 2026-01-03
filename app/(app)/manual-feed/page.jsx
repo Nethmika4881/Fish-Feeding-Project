@@ -1,12 +1,10 @@
 import { AlertCircle, HandCoins } from "lucide-react";
 import { Suspense } from "react";
-import Form from "./_components/Form";
-import SelectTank from "./_components/SelectTank";
-import { getFoodNames, getTankDetails } from "../_services/supabaseActions";
 import Spinner from "../_components/Spinner";
+import { getFoodNames } from "../_services/supabaseActions";
+import Form from "./_components/Form";
 
 async function page() {
-  const data = await getTankDetails();
   const feedNames = await getFoodNames();
   return (
     <>

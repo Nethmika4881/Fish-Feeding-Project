@@ -12,12 +12,27 @@ import UpcomingFeeds from "./_components/UpcomingFeeds";
 import WarningList from "./_components/WarningList";
 
 async function page() {
-  const upcomingFeeds = await getUpcomingFeedingScheduleForToday();
-  const session = await getCurrentUser();
-  const numOfTanks = await getNumOfTanks();
-  const getNumOfAlerts = await numOfAlerts();
-  const detailsWeekly = await get_week_feed_amounts_daily();
-  const alerts = await getAlerts();
+  const [
+    upcomingFeeds,
+    session,
+    numOfTanks,
+    getNumOfAlerts,
+    detailsWeekly,
+    alerts,
+  ] = await Promise.all([
+    getUpcomingFeedingScheduleForToday(),
+    getCurrentUser(),
+    getNumOfTanks(),
+    numOfAlerts(),
+    get_week_feed_amounts_daily(),
+    getAlerts(),
+  ]);
+  // const upcomingFeeds = await getUpcomingFeedingScheduleForToday();
+  // const session = await getCurrentUser();
+  // const numOfTanks = await getNumOfTanks();
+  // const getNumOfAlerts = await numOfAlerts();
+  // const detailsWeekly = await get_week_feed_amounts_daily();
+  // const alerts = await getAlerts();
   const now = new Date();
   const pastAlerts = alerts.filter(
     (alert) => alert.created_at && new Date(alert.created_at) < now,
