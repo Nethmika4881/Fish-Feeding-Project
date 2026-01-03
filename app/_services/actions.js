@@ -119,16 +119,21 @@ export const deleteTankAction = async (tank_id) => {
 };
 export const addNewFeedSchedule = async (formData) => {
   console.log(formData, "formdata");
+  const feedTime = formData.get("time");
+  const currentTime = new Date();
+  const [hours, minutes] = feedTime.split(":");
+  const scheduledTime = new Date();
+  scheduledTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
 
   try {
     const details = {
       shop_id: "4e7ab86b-37b2-40e8-a789-01f675d6df3b",
       tank_id: formData.get("tank"),
       feed_name: formData.get("feed-type"),
-      feed_time: formData.get("time"),
+      feed_time: feedTime,
       feed_amount: Number(formData.get("amount")),
-      today_status: "not-info",
-      is_enabled: true, // Set to true by default
+      today_status: currentTime > scheduledTime ? "scheduled" : "pending",
+      is_enabled: true,
     };
 
     console.log(details, "DETAILSSSSSSS");
