@@ -1,8 +1,7 @@
 "use client";
-import { LogOut, User } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Sidebar from "./Sidebar";
-import { logout } from "../_services/supabaseActions";
+import Logout from "./Logout";
 
 function Header() {
   const pathName = usePathname();
@@ -23,13 +22,11 @@ function Header() {
   const page = pageTitles[matchPathName] || "";
 
   return (
-    <div className="border-b-2 border-stone-50 bg-white px-4 py-5 text-stone-800">
+    <div className="border-b-2 border-stone-50 bg-white px-4 py-2 text-stone-800">
       <div className="flex items-center justify-between">
         <p className="font-bold text-stone-900">{page}</p>
         <div className="hidden lg:block">
-          <button className="">
-            <LogOut onClick={() => logout()} size={25} color="#25AAE8" />
-          </button>
+          <Logout />
         </div>
 
         {/* Mobile Sidebar */}

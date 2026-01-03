@@ -36,7 +36,7 @@ export async function loginAction(prevState, formData) {
   });
 
   if (error) {
-    return { error: error.message };
+    return { error: "check your internet connection" };
   }
 
   redirect("/dashboard");

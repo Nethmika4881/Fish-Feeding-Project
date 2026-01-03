@@ -29,10 +29,7 @@ function connect() {
 
     // Debug: Log what we're getting
     console.log("🔍 Debug - Environment Variables:");
-    console.log(
-      "  NEXT_PUBLIC_MQTT_BROKER_URL:",
-      process.env.NEXT_PUBLIC_MQTT_BROKER_URL,
-    );
+    console.log("  NEXT_PUBLIC_MQTT_BROKER_URL:", process.env.MQTT_BROKER_URL);
     console.log("  MQTT_BROKER_URL:", process.env.MQTT_BROKER_URL);
     console.log("  Final brokerUrl:", brokerUrl);
 
@@ -69,7 +66,7 @@ function connect() {
       clientId: `nextjs_webapp_client`,
       username: username,
       password: password,
-      clean: true, // Changed to true to prevent session buildup
+      clean: false, // Changed to true to prevent session buildup
       keepalive: 60,
       reconnectPeriod: 5000,
       connectTimeout: 30 * 1000,
