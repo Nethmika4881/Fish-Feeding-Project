@@ -64,7 +64,8 @@ export const deleteTank = async function (tank_id) {
 export const getFeedingSchedule = async function () {
   const { data: feedingSchedule, error } = await supabase
     .from("feeding_schedules")
-    .select("*,tanks(tank_name)");
+    .select("*,tanks(tank_name)")
+    .order("feed_time", { ascending: true });
 
   console.log(feedingSchedule, "feeding_schedule");
 
