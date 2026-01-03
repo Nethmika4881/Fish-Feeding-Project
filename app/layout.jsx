@@ -1,7 +1,7 @@
 // app/layout.jsx
 import { Inter } from "next/font/google";
+import { initializeMQTT } from "./_lib/mqtt/init";
 import "./globals.css";
-import { Toaster } from "react-hot-toast";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -10,6 +10,11 @@ export const metadata = {
   description: "Manage your fish farm operations",
 };
 
+// Initialize MQTT when the server starts
+if (typeof window === "undefined") {
+  // Only run on server side
+  initializeMQTT().catch(console.error);
+}
 export default function RootLayout({ children }) {
   return (
     <html lang="en">

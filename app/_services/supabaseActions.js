@@ -40,7 +40,7 @@ export const deleteTank = async function (tank_id) {
   const { error: error2 } = await supabase
     .from("feed_logs")
     .delete()
-    .eq("tankId", tank_id)
+    .eq("tank_id", tank_id)
     .eq("shop_id", "4e7ab86b-37b2-40e8-a789-01f675d6df3b");
 
   if (error2) {
