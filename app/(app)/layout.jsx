@@ -1,3 +1,4 @@
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Inter } from "next/font/google";
 import Header from "../_components/Header";
 import Sidebar from "../_components/Sidebar";
@@ -42,6 +43,7 @@ export default function DashboardLayout({ children }) {
               },
             }}
           />
+          <SpeedInsights />
 
           <TanksDetailsProvider>{children}</TanksDetailsProvider>
         </main>
