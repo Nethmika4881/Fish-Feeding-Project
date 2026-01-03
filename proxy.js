@@ -1,7 +1,25 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 
-export async function proxy(request) {
+// Define protected routes that require authentication
+const PROTECTED_ROUTES = [
+  "/dashboard",
+  "/feeding-schedule",
+  "/tanks",
+  "/settings",
+  "/analytics",
+  "/inventory",
+  "/alerts",
+  "/devices",
+];
+
+// Define public routes that should redirect authenticated users
+const AUTH_ROUTES = ["/login", "/signup"];
+
+// Define routes accessible without authentication
+const PUBLIC_ROUTES = ["/manual-feeding", "/"];
+
+export async function middleware(request) {
   const { pathname } = request.nextUrl;
 
   // Create a response object
@@ -33,10 +51,21 @@ export async function proxy(request) {
   // Get user session
   const {
     data: { user },
+    error,
   } = await supabase.auth.getUser();
 
-  // Block dashboard if user is not authenticated
-  if (pathname.startsWith("/dashboard") && !user) {
+  // Helper function to check if path matches any protected route
+  const isProtectedRoute = PROTECTED_ROUTES.some((route) =>
+    pathname.startsWith(route),
+  );
+
+  const isAuthRoute = AUTH_ROUTES.includes(pathname);
+  const isPublicRoute = PUBLIC_ROUTES.some((route) =>
+    pathname.startsWith(route),
+  );
+
+  // Block protected routes if user is not authenticated
+  if (isProtectedRoute && !user) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("redirect", pathname);
@@ -44,14 +73,17 @@ export async function proxy(request) {
   }
 
   // Redirect authenticated users away from login/signup to dashboard
-  if (user && (pathname === "/login" || pathname === "/signup")) {
+  if (user && isAuthRoute) {
     const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
+    const redirectTo = request.nextUrl.searchParams.get("redirect");
+    url.pathname =
+      redirectTo && redirectTo !== "/login" ? redirectTo : "/dashboard";
+    url.searchParams.delete("redirect");
     return NextResponse.redirect(url);
   }
 
-  // Allow access to manual-feeding without authentication
-  if (pathname.startsWith("/manual-feeding")) {
+  // Allow access to public routes
+  if (isPublicRoute) {
     return response;
   }
 
