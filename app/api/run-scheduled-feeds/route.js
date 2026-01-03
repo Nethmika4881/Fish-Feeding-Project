@@ -1,5 +1,5 @@
 // app/api/mqtt/send-feed/route.js
-import { getMQTTService } from "@/app/_lib/mqtt/mqttClient";
+import { getMQTTService } from "./../../_lib/mqtt/mqttClient";
 import { NextResponse } from "next/server";
 
 export async function POST(request) {
