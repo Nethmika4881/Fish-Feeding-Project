@@ -4,7 +4,6 @@ import Header from "./_components/Header";
 import FishFeedScheduleClient from "./_components/Table";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
 async function page() {
   const data = await getFeedingSchedule();
   console.log(data);

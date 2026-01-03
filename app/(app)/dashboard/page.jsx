@@ -12,7 +12,6 @@ import UpcomingFeeds from "./_components/UpcomingFeeds";
 import WarningList from "./_components/WarningList";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
 async function page() {
   const [
     upcomingFeeds,
