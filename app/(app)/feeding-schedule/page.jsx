@@ -12,7 +12,7 @@ async function page() {
     id: log?.id,
     time: formatTimeHHMM(log.feed_time),
     tank: log.tanks?.tank_name || "Unknown Tank",
-    feedType: log.feed_type,
+    feedType: log.feed_name,
     amount: `${log.feed_amount}g`,
     status: log.today_status || "pending",
   }));
