@@ -84,7 +84,6 @@ export const manualFeedingAction = async (formData) => {
 
     try {
       const mqtt = getMQTTService();
-      await mqtt.connect();
 
       mqtt.onMessage(ackTopic, async (message) => {
         try {

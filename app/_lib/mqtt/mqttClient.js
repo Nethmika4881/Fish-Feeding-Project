@@ -10,28 +10,40 @@ const messageHandlers = new Map();
 function connect() {
   // If already connected, resolve immediately
   if (client && isConnected) {
+    console.log("✓ MQTT already connected - reusing connection");
     return Promise.resolve();
   }
+
   // If currently connecting, return the existing promise
   if (connectionPromise) {
+    console.log("⏳ Connection in progress - waiting...");
     return connectionPromise;
   }
+
   isConnecting = true;
+
   connectionPromise = new Promise((resolve, reject) => {
     const brokerUrl = process.env.MQTT_BROKER_URL;
     const options = {
-      clientId: "nextjs_server_mqtt_",
+      clientId: `nextjs_server_mqtt_${Date.now()}`,
       username: process.env.MQTT_USERNAME,
       password: process.env.MQTT_PASSWORD,
       clean: false,
-      reconnectPeriod: 1000,
+      keepalive: 60,
+      reconnectPeriod: 5000,
       connectTimeout: 30 * 1000,
       rejectUnauthorized: false,
+      will: {
+        topic: "client/status",
+        payload: "offline",
+        qos: 1,
+        retain: true,
+      },
     };
-    console.log("Connecting to EMQX broker...");
+
+    console.log("🔌 Connecting to MQTT broker...");
     client = mqtt.connect(brokerUrl, options);
 
-    // Timeout for connection
     const timeout = setTimeout(() => {
       isConnecting = false;
       connectionPromise = null;
@@ -40,18 +52,27 @@ function connect() {
 
     client.on("connect", () => {
       clearTimeout(timeout);
-      console.log("✓ MQTT connected");
+      console.log("✅ MQTT connected successfully");
       isConnected = true;
       isConnecting = false;
-      // Subscribe pending topics
-      pendingSubscriptions.forEach((topic) => client.subscribe(topic));
-      pendingSubscriptions.clear();
+
+      // Subscribe to pending topics
+      if (pendingSubscriptions.size > 0) {
+        console.log(
+          `📬 Subscribing to ${pendingSubscriptions.size} pending topics`,
+        );
+        pendingSubscriptions.forEach((topic) => {
+          client.subscribe(topic, { qos: 1 });
+        });
+        pendingSubscriptions.clear();
+      }
+
       resolve();
     });
 
     client.on("error", (err) => {
       clearTimeout(timeout);
-      console.error("MQTT error:", err);
+      console.error("❌ MQTT error:", err);
       isConnected = false;
       isConnecting = false;
       connectionPromise = null;
@@ -59,30 +80,37 @@ function connect() {
     });
 
     client.on("close", () => {
-      console.log("MQTT connection closed");
+      console.log("⚠️ MQTT connection closed");
       isConnected = false;
       connectionPromise = null;
     });
 
     client.on("reconnect", () => {
-      console.log("MQTT reconnecting...");
+      console.log("🔄 MQTT reconnecting...");
+    });
+
+    client.on("offline", () => {
+      console.log("📴 MQTT client offline");
+      isConnected = false;
     });
 
     // Handle incoming messages
     client.on("message", (topic, message) => {
-      console.log(`✓ Message received on ${topic}`);
       const messageStr = message.toString();
+      console.log(
+        `📨 Message received on ${topic}:`,
+        messageStr.substring(0, 100),
+      );
 
-      // Call handler registered for this specific topic
       const handler = messageHandlers.get(topic);
       if (handler) {
         try {
           handler(messageStr);
         } catch (err) {
-          console.error(`Error in message handler for ${topic}:`, err);
+          console.error(`❌ Error in message handler for ${topic}:`, err);
         }
       } else {
-        console.log(`No handler registered for topic: ${topic}`);
+        console.log(`⚠️ No handler registered for topic: ${topic}`);
       }
     });
   });
@@ -93,29 +121,33 @@ function connect() {
 function subscribe(topic) {
   if (!client || !isConnected) {
     pendingSubscriptions.add(topic);
-    console.log(`Topic queued for subscription: ${topic}`);
+    console.log(`📝 Topic queued for subscription: ${topic}`);
     return;
   }
+
   client.subscribe(topic, { qos: 1 }, (err) => {
     if (err) {
-      console.error(`Subscribe failed: ${topic}`, err);
+      console.error(`❌ Subscribe failed: ${topic}`, err);
     } else {
-      console.log(`✓ Subscribed: ${topic}`);
+      console.log(`✅ Subscribed to: ${topic}`);
     }
   });
 }
 
-function publish(topic, message, options = { qos: 1 }) {
+async function publish(topic, message, options = { qos: 1 }) {
+  // Auto-connect if not connected
   if (!client || !isConnected) {
-    throw new Error("MQTT not connected");
+    console.log("⚠️ Not connected, connecting first...");
+    await connect();
   }
+
   return new Promise((resolve, reject) => {
     client.publish(topic, message, options, (err) => {
       if (err) {
-        console.error("Publish error:", err);
+        console.error("❌ Publish error:", err);
         reject(err);
       } else {
-        console.log(`Published → ${topic}`);
+        console.log(`✅ Published to ${topic}`);
         resolve();
       }
     });
@@ -123,14 +155,15 @@ function publish(topic, message, options = { qos: 1 }) {
 }
 
 function onMessage(topic, handler) {
-  // Register the handler for this topic
   messageHandlers.set(topic, handler);
-  console.log(`✓ Message handler registered for: ${topic}`);
+  console.log(`✅ Message handler registered for: ${topic}`);
 }
 
 function removeMessageHandler(topic) {
-  messageHandlers.delete(topic);
-  console.log(`✓ Message handler removed for: ${topic}`);
+  const existed = messageHandlers.delete(topic);
+  if (existed) {
+    console.log(`✅ Message handler removed for: ${topic}`);
+  }
 }
 
 function getConnectionStatus() {
@@ -140,16 +173,27 @@ function getConnectionStatus() {
 function disconnect() {
   if (client) {
     messageHandlers.clear();
+    pendingSubscriptions.clear();
     client.end(true);
     client = null;
     isConnected = false;
+    isConnecting = false;
     connectionPromise = null;
-    console.log("✓ MQTT disconnected and cleaned up");
+    console.log("✅ MQTT disconnected and cleaned up");
   }
 }
 
+// Singleton service instance
+let serviceInstance = null;
+
 function getMQTTService() {
-  return {
+  // Return existing service instance
+  if (serviceInstance) {
+    return serviceInstance;
+  }
+
+  // Create service instance once
+  serviceInstance = {
     connect,
     publish,
     subscribe,
@@ -158,6 +202,8 @@ function getMQTTService() {
     getConnectionStatus,
     disconnect,
   };
+
+  return serviceInstance;
 }
 
 export { getMQTTService };
