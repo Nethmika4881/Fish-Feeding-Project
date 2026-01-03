@@ -10,6 +10,12 @@ function UpcomingFeedsCard({ feed, isLast }) {
     tanks: { tank_name: tankName },
   } = feed;
 
+  console.log({
+    feedAmount,
+    feedType,
+    feedTime,
+    tankName,
+  });
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-3">

@@ -77,7 +77,10 @@ export const getFeedingSchedule = async function () {
 };
 export const getUpcomingFeedingScheduleForToday = async function () {
   const now = new Date();
-  const currentTime = now.toTimeString().slice(0, 8);
+  const sriLankaTime = new Date(
+    now.toLocaleString("en-US", { timeZone: "Asia/Colombo" }),
+  );
+  const currentTime = sriLankaTime.toTimeString().slice(0, 8);
 
   const { data, error } = await supabase
     .from("feeding_schedules")
