@@ -19,7 +19,7 @@ const AUTH_ROUTES = ["/login", "/signup"];
 // Define routes accessible without authentication
 const PUBLIC_ROUTES = ["/manual-feeding", "/"];
 
-export async function middleware(request) {
+export default async function proxy(request) {
   const { pathname } = request.nextUrl;
 
   // Create a response object
@@ -51,7 +51,6 @@ export async function middleware(request) {
   // Get user session
   const {
     data: { user },
-    error,
   } = await supabase.auth.getUser();
 
   // Helper function to check if path matches any protected route
