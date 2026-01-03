@@ -8,8 +8,6 @@ export async function POST(request) {
 
     const mqttService = getMQTTService();
 
-    // Connection should already be established from layout.jsx
-    // But we call connect() anyway as it returns immediately if already connected
     await mqttService.connect();
 
     await mqttService.publish(
