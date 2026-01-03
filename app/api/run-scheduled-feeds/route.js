@@ -26,11 +26,18 @@ export async function POST(request) {
     revalidatePath("/feeding-schedule");
     revalidatePath("/analytics");
     revalidatePath("/inventory");
-    return NextResponse.json({
-      success: true,
-      tankId,
-      feedAmount,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        tankId,
+        feedAmount,
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate",
+        },
+      },
+    );
   } catch (error) {
     console.error("[MQTT] ❌ Error:", error);
     return NextResponse.json(
