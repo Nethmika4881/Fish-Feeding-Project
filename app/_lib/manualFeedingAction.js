@@ -168,8 +168,7 @@ export const manualFeedingAction = async (formData) => {
     return mqttSuccess
       ? {
           success: true,
-          message:
-            "Feeding command sent successfully. Waiting for device acknowledgment.",
+          message: "Feeding command sent successfully",
           requestId: feedingRequest.id,
         }
       : {
