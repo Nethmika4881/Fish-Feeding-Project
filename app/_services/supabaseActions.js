@@ -79,7 +79,7 @@ export const getUpcomingFeedingScheduleForToday = async function () {
   const { data, error } = await supabase
     .from("feeding_schedules")
     .select("*, tanks(tank_name)")
-    .eq("status", "pending")
+    .eq("today_status", "pending")
     .eq("is_enabled", true)
     .order("feed_time", { ascending: true });
 
