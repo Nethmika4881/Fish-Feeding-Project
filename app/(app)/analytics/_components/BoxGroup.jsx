@@ -30,7 +30,7 @@ function BoxGroup({ detailsWeekly, details, inventoryDetails }) {
       <Box
         topic="Avg Daily Using"
         icon={<HandCoins size={iconSize} color="#64748B" />}
-        value={`${avg}kg`}
+        value={`${avg.toFixed(1)}kg`}
         subMsg="in this week avg usage per day"
       />
 
@@ -52,7 +52,7 @@ function BoxGroup({ detailsWeekly, details, inventoryDetails }) {
         topic="Est. Cost"
         textColor=""
         icon={<Banknote size={iconSize} color="#64748B" />}
-        value={`${avgCostPerKg * avg * 7} lkr`}
+        value={`${(avgCostPerKg * avg * 7).toFixed(1)} lkr`}
         subMsg="This Week"
       />
     </div>

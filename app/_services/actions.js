@@ -202,6 +202,7 @@ export const updateScheduleAction = async function (id, formData) {
         feed_time: time,
         feed_name: feedType,
         feed_amount: amount,
+        today_status: "pending",
       })
       .eq("id", id);
 

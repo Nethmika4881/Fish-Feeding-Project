@@ -30,6 +30,8 @@ export default function WeeklyConsumption({ detailsWeekly }) {
       feedUsed: match ? parseFloat(match.total_feed_amount) : 0,
     };
   });
+
+  console.log(data, "kama kama");
   return (
     <div className="mt-5 w-full rounded-xl bg-white p-4 shadow-sm">
       <Heading />

@@ -308,7 +308,7 @@ export const get_week_feed_amounts_daily = async function () {
     p_shop_id: "4e7ab86b-37b2-40e8-a789-01f675d6df3b",
   });
 
-  if (error) throw new Error("could get analysis for bar chart");
+  if (error) throw new Error(error.message);
 
   return data;
 };
