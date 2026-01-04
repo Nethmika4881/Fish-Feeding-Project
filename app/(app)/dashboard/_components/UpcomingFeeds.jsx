@@ -4,7 +4,7 @@ import UpcomingFeedsList from "./UpcomingFeedsList";
 function UpcomingFeeds({ upcomingFeeds }) {
   console.log(upcomingFeeds);
   return (
-    <div className="col-span-2 h-full w-full rounded-xl bg-white px-4 py-4 text-[.7rem] shadow-sm lg:col-span-1">
+    <div className="col-span-2 h-120 w-full overflow-y-scroll rounded-xl bg-white px-4 text-[.7rem] shadow-sm lg:col-span-1">
       <Heading />
       <UpcomingFeedsList upcomingFeeds={upcomingFeeds} />
     </div>

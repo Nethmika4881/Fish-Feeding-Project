@@ -17,7 +17,7 @@ function UpcomingFeedsCard({ feed, isLast }) {
     tankName,
   });
   return (
-    <div className="flex flex-col gap-4">
+    <div className={`flex flex-col gap-4 ${isLast ? "pb-4" : ""}`}>
       <div className="flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E6F5FC]">
           <Timer size={30} strokeWidth={2.5} color="#0DA2E7" />
