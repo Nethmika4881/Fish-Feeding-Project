@@ -76,16 +76,11 @@ export const getFeedingSchedule = async function () {
   return feedingSchedule;
 };
 export const getUpcomingFeedingScheduleForToday = async function () {
-  const now = new Date();
-  const sriLankaTime = new Date(
-    now.toLocaleString("en-US", { timeZone: "Asia/Colombo" }),
-  );
-  const currentTime = sriLankaTime.toTimeString().slice(0, 8);
-
   const { data, error } = await supabase
     .from("feeding_schedules")
     .select("*, tanks(tank_name)")
-    .gt("feed_time", currentTime)
+    .eq("status", "pending")
+    .eq("is_enabled", true)
     .order("feed_time", { ascending: true });
 
   if (error) {
