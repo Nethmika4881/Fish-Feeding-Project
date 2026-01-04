@@ -2,7 +2,7 @@ import WarningCard from "./WarningCard";
 
 function WarningList({ alerts }) {
   return (
-    <div className="my-10 min-h-100 w-full rounded-xl bg-white px-5 pt-3 pb-5 shadow-sm">
+    <div className="my-10 h-120 w-full overflow-y-scroll rounded-xl bg-white px-5 pt-3 pb-5 shadow-sm">
       <Heading />
       <div className="flex flex-col gap-3">
         {alerts.map((alertMsg) => (

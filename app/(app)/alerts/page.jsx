@@ -4,7 +4,7 @@ import WarningList from "./_components/WarningList";
 
 async function page() {
   const alerts = await getAlerts();
-  console.log(alerts);
+  console.log(alerts, "alerts");
   return (
     <div>
       <Header />

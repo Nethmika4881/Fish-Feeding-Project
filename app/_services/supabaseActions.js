@@ -147,7 +147,8 @@ export const updateProfileDetails = async function (id, updateDetails) {
 export const getAlerts = async function () {
   const { data, error } = await supabase
     .from("alerts")
-    .select("*,tanks(tank_name),devices(device_code,status)");
+    .select("*,tanks(tank_name),devices(device_code,status)")
+    .order("created_at", { ascending: false });
 
   if (error) throw new Error("Couldnt get the alerts  ");
 
