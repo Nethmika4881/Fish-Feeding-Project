@@ -1,8 +1,10 @@
 "use client";
 
-import { useActionState } from "react";
-import { loginAction } from "../login/actions";
+import { Loader } from "lucide-react";
 import Image from "next/image";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
+import { loginAction } from "../login/actions";
 
 export default function LoginPage() {
   const [state, formAction] = useActionState(loginAction, {});
@@ -35,14 +37,28 @@ export default function LoginPage() {
             className="w-full rounded-xl border border-blue-400 px-4 py-4"
           />
 
-          <button
-            type="submit"
-            className="w-full rounded-xl bg-blue-500 py-4 font-semibold text-white"
-          >
-            Log in
-          </button>
+          <Button />
         </form>
       </div>
     </div>
   );
 }
+
+const Button = function () {
+  const { pending } = useFormStatus();
+  return (
+    <div className="flex w-full items-center justify-center">
+      <button
+        type="submit"
+        disabled={pending}
+        className={`w-full cursor-pointer rounded-xl bg-blue-500 py-4 font-semibold text-white ${pending ? "opacity-60" : ""}`}
+      >
+        {pending ? (
+          <Loader size={25} className="mx-auto animate-spin" />
+        ) : (
+          "Log in"
+        )}
+      </button>
+    </div>
+  );
+};

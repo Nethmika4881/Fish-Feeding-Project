@@ -9,7 +9,7 @@ export const getTankDetails = async function () {
     .from("tanks")
     .select("*");
 
-  console.log(tanksDetails, "tankdetails");
+  // console.log(tanksDetails, "tankdetails");
 
   if (error) throw new Error("Couldnt get the details about tanks");
 
@@ -287,6 +287,17 @@ export const get_tank_amountoffeedused_numoftimesfeeded_lastweek =
     return data;
   };
 
+export const getFeedLogs = async function () {
+  const { data, error } = await supabase
+    .from("feed_logs")
+    .select(
+      "*,tanks(tank_name),feeding_schedules(feed_amount,feed_name),manual_feeding_requests(feed_amount,feed_name)",
+    )
+    .range(0, 15)
+    .order("created_at", { ascending: false });
+  if (error) throw new Error("could get feed logs");
+  return data;
+};
 export const get_week_feed_amounts_daily = async function () {
   const { data, error } = await supabase.rpc("get_week_feed_amounts_daily", {
     p_shop_id: "4e7ab86b-37b2-40e8-a789-01f675d6df3b",

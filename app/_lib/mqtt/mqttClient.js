@@ -63,7 +63,7 @@ function connect() {
     }
 
     const options = {
-      clientId: `nextjs_webapp_client`,
+      clientId: `nextjs_webapp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       username: username,
       password: password,
       clean: false, // Changed to true to prevent session buildup
