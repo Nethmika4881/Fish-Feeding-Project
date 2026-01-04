@@ -291,7 +291,7 @@ export const getFeedLogs = async function () {
   const { data, error } = await supabase
     .from("feed_logs")
     .select(
-      "*,tanks(tank_name),feeding_schedules(feed_amount,feed_name),manual_feeding_requests(feed_amount,feed_name)",
+      "id,created_at,type,tanks(tank_name),feeding_schedules(feed_amount,feed_name),manual_feeding_requests(feed_amount,feed_name)",
     )
     .range(0, 15)
     .order("created_at", { ascending: false });
