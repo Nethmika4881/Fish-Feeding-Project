@@ -296,7 +296,12 @@ export const getFeedLogs = async function () {
     .range(0, 15)
     .order("created_at", { ascending: false });
   if (error) throw new Error("could get feed logs");
-  return data;
+  return data.map((log) => ({
+    ...log,
+    created_at: new Date(log.created_at).toLocaleString("en-US", {
+      timeZone: "Asia/Colombo",
+    }),
+  }));
 };
 export const get_week_feed_amounts_daily = async function () {
   const { data, error } = await supabase.rpc("get_week_feed_amounts_daily", {
